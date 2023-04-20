@@ -1,12 +1,12 @@
 import { CoreEvent } from "../core/event.js";
-import { Assets } from "../core/assets.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Tilemap } from "../core/tilemap.js";
 import { Bitmap } from "../renderer/bitmap.js";
+import { WallMap } from "./wallmap.js";
 
 
 const NON_ANIMATED_TILES = [
-    2, 4, 6, 7, 8, 9, 10, 12
+    4, 6, 7, 8, 9, 10, 12
 ];
 const ANIMATED_TILES = [
     11, 13, 17, 18, 19, 20
@@ -23,7 +23,7 @@ const SOURCE_Y = [
     0, 0, 0, 1, 
     1, 1, 3, 2, 
     2, 0, 0, 0,
-    4, 5, 4, 5
+    4, 5, 5, 4
 ];
 const FRAME_COUNT = [
     0, 0, 0, 0, 
@@ -48,6 +48,8 @@ export class Stage {
     private baseMap : Tilemap;
     private activeStaticLayer : Array<number> | undefined;
 
+    private wallMap : WallMap;
+
     private width : number;
     private height : number;
 
@@ -70,6 +72,7 @@ export class Stage {
         this.height = baseMap.height;
 
         this.activeStaticLayer = baseMap.cloneLayer("base");
+        this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
 
         this.tileAnimationTimer = 0.0;
 
@@ -80,7 +83,6 @@ export class Stage {
 
 
     private drawStaticTiles(canvas : Canvas, bmp : Bitmap) : void {
-
 
         if (this.activeStaticLayer == undefined)
             return;
@@ -148,6 +150,13 @@ export class Stage {
         canvas.setColor();
 
         let bmpTileset = canvas.getBitmap("tileset1");
+        let bmpWall = canvas.getBitmap("wall1");
+
+        if (bmpWall != undefined) {
+
+            this.wallMap.draw(canvas, bmpWall, this.tileWidth, this.tileHeight);
+        }
+
         if (bmpTileset != undefined) {
 
             this.drawStaticTiles(canvas, bmpTileset);
