@@ -1,7 +1,7 @@
 import { Assets } from "../core/assets.js";
 import { CoreEvent } from "../core/event.js";
 import { Scene, SceneParam } from "../core/scene.js";
-import { Canvas } from "../renderer/canvas.js";
+import { Canvas, TextAlign } from "../renderer/canvas.js";
 import { Stage } from "./stage.js";
 
 
@@ -11,7 +11,9 @@ export class Game implements Scene {
     private stage : Stage;
 
 
-    private drawHUD(canvas : Canvas) : void {
+    private drawFrame(canvas : Canvas) : void {
+
+        const SHADOW_ALPHA = 0.67;
 
         let bmpHUD = canvas.getBitmap("hud");
         if (bmpHUD == undefined)
@@ -19,6 +21,21 @@ export class Game implements Scene {
 
         let w = (this.stage.getWidth() * this.stage.tileWidth) / 8;
         let h = (this.stage.getHeight() * this.stage.tileHeight) / 8;
+
+        canvas.setColor(0, 0, 0, SHADOW_ALPHA);
+        for (let i = 0; i < Math.max(w + 2, h + 1); ++ i) {
+
+            if (i < w + 2) {
+
+                canvas.drawBitmapRegion(bmpHUD, 8, 8, 8, 8, i*8, (h+1)*8);     
+            }
+
+            if (i < h + 1) {
+
+                canvas.drawBitmapRegion(bmpHUD, 8, 8, 8, 8, (w+1)*8, i*8);   
+            }
+        }
+        canvas.setColor();
 
         for (let x = 0; x < w + 2; ++ x) {
 
@@ -28,9 +45,7 @@ export class Game implements Scene {
                     x*8, -8);
                 canvas.drawBitmapRegion(bmpHUD, 8, 16, 8, 8,
                     x*8, h*8);
-            }
-
-            canvas.drawBitmapRegion(bmpHUD, 8, 8, 8, 8, x*8, (h+1)*8);    
+            }  
         }
 
         for (let y = 0; y < h + 1; ++ y) {
@@ -42,14 +57,26 @@ export class Game implements Scene {
                 canvas.drawBitmapRegion(bmpHUD, 16, 8, 8, 8,
                     w*8, y*8);
             }
-
-            canvas.drawBitmapRegion(bmpHUD, 8, 8, 8, 8, (w+1)*8, y*8);    
         }
 
         canvas.drawBitmapRegion(bmpHUD, 0, 0, 8, 8, -8, -8);
         canvas.drawBitmapRegion(bmpHUD, 16, 0, 8, 8, w*8, -8);
         canvas.drawBitmapRegion(bmpHUD, 0, 16, 8, 8, -8, h*8);
         canvas.drawBitmapRegion(bmpHUD, 16, 16, 8, 8, w*8, h*8);
+    }
+
+
+    private drawHUD(canvas : Canvas) : void {
+
+        canvas.drawText(
+            canvas.getBitmap("font"), 
+            "Stage 1", canvas.width/2, 8, 
+            0, 0, TextAlign.Center);
+
+        canvas.drawText(
+            canvas.getBitmap("font"), 
+            "Password: 12345678", canvas.width/2, canvas.height-12, 
+            0, 0, TextAlign.Center);
     }
 
 
@@ -81,8 +108,13 @@ export class Game implements Scene {
 
         this.stage.centerCamera(canvas);
 
-        this.drawHUD(canvas);
+        this.drawFrame(canvas);
         this.stage.draw(canvas);
+
+        canvas.transform
+            .loadIdentity()
+            .use();
+        this.drawHUD(canvas);
     }
 
 }
