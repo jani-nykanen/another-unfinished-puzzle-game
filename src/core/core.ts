@@ -109,7 +109,7 @@ export class Core {
 
             if (this.activeScene != undefined) {
 
-                this.activeScene.redraw(canvas, this.assets, interpolationStep);
+                this.activeScene.redraw(canvas, interpolationStep);
             }
 
             this.transition.draw(canvas);
@@ -145,7 +145,7 @@ export class Core {
 
             if (this.activeScene != undefined) {
 
-                this.activeScene.init(null, this.event, this.assets);
+                this.activeScene.init(null, this.event);
             }
             this.initialized = true;
         }
@@ -160,7 +160,7 @@ export class Core {
             if (this.activeScene != undefined &&
                 this.assets.hasLoaded()) {
 
-                this.activeScene.updatePhysics(this.event, this.assets);
+                this.activeScene.updatePhysics(this.event);
             }
             this.transition.update(this.event, frameSkip + 1);
 
@@ -171,7 +171,7 @@ export class Core {
         if (this.activeScene != undefined &&
             this.assets.hasLoaded()) {
 
-            this.activeScene.update(this.event, this.assets);
+            this.activeScene.update(this.event);
         }
 
         this.input.update();
@@ -212,7 +212,7 @@ export class Core {
             throw "No scene with name: " + name;
         }
 
-        newScene.init(param, this.event, this.assets);
+        newScene.init(param, this.event);
         this.activeScene = newScene;
     }
 }

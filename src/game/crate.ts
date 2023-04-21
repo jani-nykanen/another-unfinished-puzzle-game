@@ -1,22 +1,15 @@
 import { CoreEvent } from "../core/event.js";
-import { Canvas, Flip } from "../renderer/canvas.js";
-import { Sprite } from "../renderer/sprite.js";
+import { Canvas } from "../renderer/canvas.js";
 import { MovingObject } from "./movingobject.js";
 import { Stage } from "./stage.js";
 
 
-export class Player extends MovingObject {
-
-
-    private spr : Sprite;
-    private flip : Flip = Flip.None;
+export class Crate extends MovingObject {
 
 
     constructor(x : number, y : number) {
 
         super(x, y, true);
-
-        this.spr = new Sprite();
     }
 
 
@@ -27,13 +20,12 @@ export class Player extends MovingObject {
 
     public draw(canvas : Canvas, stage : Stage) : void {
         
-        let bmp = canvas.getBitmap("player");
+        let bmp = canvas.getBitmap("tileset1");
         if (bmp == undefined)
             return;
 
-        this.spr.draw(canvas, bmp, stage.tileWidth, stage.tileHeight,
+        canvas.drawBitmapRegion(bmp, 16, 0, 16, 16,
             Math.round(this.renderPos.x * stage.tileWidth) | 0,
-            Math.round(this.renderPos.y * stage.tileHeight) | 0,
-            this.flip);
+            Math.round(this.renderPos.y * stage.tileHeight) | 0);
     }
 }

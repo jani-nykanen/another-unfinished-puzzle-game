@@ -70,35 +70,35 @@ export class Game implements Scene {
 
         canvas.drawText(
             canvas.getBitmap("font"), 
-            "Stage 1", canvas.width/2, 8, 
+            "Floor 1", canvas.width/2, 8, 
             0, 0, TextAlign.Center);
 
         canvas.drawText(
             canvas.getBitmap("font"), 
-            "Password: 12345678", canvas.width/2, canvas.height-12, 
+            "Password: 123456", canvas.width/2, canvas.height-12, 
             0, 0, TextAlign.Center);
     }
 
 
-    public init(param: SceneParam, event: CoreEvent, assets : Assets): void {
+    public init(param: SceneParam, event: CoreEvent): void {
         
         this.stage = new Stage(event);
     }
 
 
-    public update(event: CoreEvent, assets: Assets): void {
+    public update(event: CoreEvent): void {
         
-        this.stage.update(event);
+        
     }
 
 
-    public updatePhysics(event: CoreEvent, assets: Assets): void {
+    public updatePhysics(event: CoreEvent): void {
 
-        // ...
+        this.stage.updatePhysics(event);
     }
 
 
-    public redraw(canvas: Canvas, assets: Assets, interpolationStep : number): void {
+    public redraw(canvas: Canvas, interpolationStep : number): void {
 
         canvas.clear(0.0, 0.33, 0.67);
         canvas.transform

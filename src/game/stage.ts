@@ -3,6 +3,9 @@ import { Canvas } from "../renderer/canvas.js";
 import { Tilemap } from "../core/tilemap.js";
 import { Bitmap } from "../renderer/bitmap.js";
 import { WallMap } from "./wallmap.js";
+import { GameObject } from "./gameobject.js";
+import { Player } from "./player.js";
+import { Crate } from "./crate.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -46,7 +49,10 @@ export class Stage {
 
 
     private baseMap : Tilemap;
-    private activeStaticLayer : Array<number> | undefined;
+
+    private objectPool : Array<GameObject>;
+    private activeObjectLayer : Array<GameObject | undefined> | undefined = undefined;
+    private activeStaticLayer : Array<number> | undefined = undefined;
 
     private wallMap : WallMap;
 
@@ -71,14 +77,64 @@ export class Stage {
         this.width = baseMap.width;
         this.height = baseMap.height;
 
+        this.objectPool = new Array<GameObject> ();
+        this.activeObjectLayer = (new Array<GameObject> (this.width*this.height)).fill(undefined);
+
         this.activeStaticLayer = baseMap.cloneLayer("base");
-        this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
+        if (this.activeStaticLayer != undefined) {
+
+            this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
+            this.parseObjects();
+        }
 
         this.tileAnimationTimer = 0.0;
 
         // TODO: Obtain these from the tilemap
         this.tileWidth = 16;
         this.tileHeight = 16;
+    }
+
+
+    private parseObjects() : void {
+
+        let tid : number;
+        let o : GameObject;
+        let index : number;
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                index = y*this.width + x;
+                tid = this.activeStaticLayer[index];
+
+                o = undefined;
+
+                switch (tid) {
+
+                // Player
+                case 3:
+
+                    o = new Player(x, y) as GameObject; 
+                    break;
+
+                // Crate
+                case 5:
+
+                    o = new Crate(x, y) as GameObject;
+                    break;
+
+                default:
+                    break;
+                }
+
+                if (o != undefined) {
+
+                    this.objectPool.push(o);
+                    this.activeObjectLayer[index] = o; 
+                }
+            }
+        }
     }
 
 
@@ -135,11 +191,34 @@ export class Stage {
     }
 
 
-    public update(event : CoreEvent) : void {
+    private drawObjectLayer(canvas : Canvas) : void {
+
+        let o : GameObject | undefined;
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                o = this.activeObjectLayer[y*this.width + x];
+                if (o == undefined)
+                    continue;
+                
+                o.draw(canvas, this);
+            }
+        }
+    }
+
+
+    public updatePhysics(event : CoreEvent) : void {
 
         const ANIMATION_SPEED = 1.0/600.0;
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
+
+        for (let o of this.objectPool) {
+
+            o.update(this, event);
+        }
     }
 
 
@@ -161,6 +240,8 @@ export class Stage {
 
             this.drawStaticTiles(canvas, bmpTileset);
         }
+
+        this.drawObjectLayer(canvas);
     }
 
 
@@ -173,6 +254,7 @@ export class Stage {
             .translate(canvas.width/2 - dx, canvas.height/2 - dy)
             .use();
     }
+
 
     public getWidth = () : number => this.width;
     public getHeight = () : number => this.height;
