@@ -22,6 +22,6 @@ export abstract class GameObject {
     }
 
 
-    abstract update(stage : Stage, event : CoreEvent) : void;
+    abstract update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean;
     abstract draw(canvas : Canvas, stage : Stage) : void;
 }

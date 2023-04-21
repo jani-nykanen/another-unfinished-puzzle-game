@@ -13,8 +13,9 @@ export class Crate extends MovingObject {
     }
 
 
-    public update(stage : Stage, event : CoreEvent) : void {
+    public update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean {
 
+        return false;
     }
 
 

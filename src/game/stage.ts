@@ -212,12 +212,13 @@ export class Stage {
     public updatePhysics(event : CoreEvent) : void {
 
         const ANIMATION_SPEED = 1.0/600.0;
+        const TURN_TIMER = 1.0/15.0;
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
 
         for (let o of this.objectPool) {
 
-            o.update(this, event);
+            o.update(TURN_TIMER, this, event);
         }
     }
 

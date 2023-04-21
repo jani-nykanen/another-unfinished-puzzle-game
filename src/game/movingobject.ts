@@ -28,14 +28,20 @@ export abstract class MovingObject extends GameObject {
             return;
 
         this.moveTimer -= moveSpeed * event.step;
+
         if (this.moveTimer <= 0.0) {
+
+            this.pos = this.target.clone();
+            this.renderPos = this.pos.clone();
 
             this.moving = false;
             if (resetTimer) {
 
                 this.moveTimer = 0.0;
             }
+            return;
         }
 
+        this.renderPos = Vector2.lerp(this.pos, this.target, 1.0-this.moveTimer);
     }
 }

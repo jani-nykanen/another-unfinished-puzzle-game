@@ -62,6 +62,13 @@ export class Sprite {
     }
 
 
+    public setFrame(column : number, row : number) : void {
+
+        this.column = column;
+        this.row = row;
+    }
+
+
     public draw(canvas : Canvas, bmp : Bitmap,
         spriteWidth : number, spriteHeight : number,
         dx : number, dy : number, flip : Flip) : void {
