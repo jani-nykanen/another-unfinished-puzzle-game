@@ -12,6 +12,14 @@ export abstract class GameObject {
 
     protected exist : boolean;
 
+    protected canPushObjects : boolean = false;
+
+
+    public get canMoveObjects() : boolean {
+
+        return this.canPushObjects;
+    }
+
 
     constructor(x : number, y : number, exist = true) {
 
@@ -22,6 +30,7 @@ export abstract class GameObject {
     }
 
 
-    abstract update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean;
+    abstract update(moveSpeed : number, stage : Stage, event : CoreEvent, canControl? : boolean) : boolean;
     abstract draw(canvas : Canvas, stage : Stage) : void;
+    abstract isMoving() : boolean;
 }

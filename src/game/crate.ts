@@ -16,7 +16,8 @@ export class Crate extends MovingObject {
     }
 
 
-    protected checkMovement(stage: Stage, event: CoreEvent, autoDir = Direction.None): boolean {
+    protected checkMovement(stage: Stage, event: CoreEvent, 
+        autoDir = Direction.None, canControl = true): boolean {
         
         const EPS = 0.25;
 
@@ -24,7 +25,7 @@ export class Crate extends MovingObject {
         let dir = autoDir;
         let o : GameObject;
 
-        if (dir == Direction.None) {
+        if (dir == Direction.None && canControl) {
 
             stick = event.input.stick;
             if (stick.length < EPS) {
@@ -44,7 +45,7 @@ export class Crate extends MovingObject {
             o = stage.getObjectInDirection(this.pos.x, this.pos.y, inverseDirection(dir));
 
             // TODO: Check if "not player"
-            if (o == undefined)
+            if (o == undefined || !o.canMoveObjects)
                 return false;
 
             // console.log(typeof(o));

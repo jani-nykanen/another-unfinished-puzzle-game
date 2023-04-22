@@ -23,10 +23,13 @@ export class Player extends MovingObject {
         this.spr = new Sprite();
 
         this.dir = Direction.None;
+
+        this.canPushObjects = true;
     }
 
 
-    protected checkMovement(stage : Stage, event : CoreEvent, autoDir = Direction.None) : boolean {
+    protected checkMovement(stage : Stage, event : CoreEvent, 
+        autoDir = Direction.None, canControl = true) : boolean {
 
         const EPS = 0.25;
 
@@ -35,7 +38,7 @@ export class Player extends MovingObject {
 
         this.automatedMovement = dir != Direction.None;
     
-        if (dir == Direction.None) {
+        if (dir == Direction.None && canControl) {
 
             stick = event.input.stick;
             if (stick.length < EPS) {

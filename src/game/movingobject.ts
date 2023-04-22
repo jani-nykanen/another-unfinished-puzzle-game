@@ -1,5 +1,4 @@
 import { CoreEvent } from "../core/event.js";
-import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Direction } from "./direction";
 import { GameObject } from "./gameobject.js";
@@ -24,8 +23,8 @@ export abstract class MovingObject extends GameObject {
     }
 
 
-    protected updateMovement(moveSpeed : number, 
-        event : CoreEvent, resetTimer = true) : void {
+    protected updateMovement(moveSpeed : number,
+        stage : Stage, event : CoreEvent, resetTimer = true) : void {
 
         if (!this.moving)
             return;
@@ -33,6 +32,8 @@ export abstract class MovingObject extends GameObject {
         this.moveTimer -= moveSpeed * event.step;
 
         if (this.moveTimer <= 0.0) {
+
+            stage.updateObjectLayerTile(this.target.x, this.target.y, this);
 
             this.pos = this.target.clone();
             this.renderPos = this.pos.clone();
@@ -49,7 +50,8 @@ export abstract class MovingObject extends GameObject {
     }
 
 
-    protected abstract checkMovement(stage : Stage, event : CoreEvent, dir? : Direction) : boolean
+    protected abstract checkMovement(stage : Stage, event : CoreEvent, 
+        dir? : Direction, canControl? : boolean) : boolean
     protected updateAnimation(event : CoreEvent) : void {};
 
 
@@ -74,7 +76,6 @@ export abstract class MovingObject extends GameObject {
             this.dir = dir;
 
             stage.updateObjectLayerTile(this.pos.x, this.pos.y, undefined);
-            stage.updateObjectLayerTile(this.target.x, this.target.y, this);
 
             return true;
         }
@@ -89,25 +90,31 @@ export abstract class MovingObject extends GameObject {
     }
 
 
-    public update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean {
+    public update(moveSpeed : number, stage : Stage, event : CoreEvent, canControl : boolean) : boolean {
 
         this.updateAnimation(event);
 
         if (this.moving) {
 
-            this.updateMovement(moveSpeed, event, false);
+            this.updateMovement(moveSpeed, stage, event, false);
             if (!this.moving) {
 
                 if (!this.checkMovement(stage, event,
-                    stage.checkUnderlyingTile(this.pos.x, this.pos.y))) {
+                    stage.checkUnderlyingTile(this.pos.x, this.pos.y), canControl)) {
 
                     this.stopMovement();
                     return false;
-                }       
+                }
+                return true;       
             }
-            return true;
+            return false;
         }
-        return this.checkMovement(stage, event);
+        return this.checkMovement(stage, event, Direction.None, canControl);
     }
 
+
+    public isMoving() : boolean {
+
+        return this.moving;
+    }
 }

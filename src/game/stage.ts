@@ -202,18 +202,9 @@ export class Stage {
 
     private drawObjectLayer(canvas : Canvas) : void {
 
-        let o : GameObject | undefined;
+        for (let o of this.objectPool) {
 
-        for (let y = 0; y < this.height; ++ y) {
-
-            for (let x = 0; x < this.width; ++ x) {
-
-                o = this.activeObjectLayer[y*this.width + x];
-                if (o == undefined)
-                    continue;
-                
-                o.draw(canvas, this);
-            }
+            o.draw(canvas, this);
         }
     }
 
@@ -225,10 +216,29 @@ export class Stage {
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
 
+        let anythingMoving = false;
+        let somethingMoved = false;
+
         for (let o of this.objectPool) {
 
-            o.update(TURN_TIMER, this, event);
+            if (o.isMoving()) {
+
+                anythingMoving = true;
+                break;
+            }
         }
+
+        do {
+
+            somethingMoved = false;
+            for (let o of this.objectPool) {
+
+                if (o.update(TURN_TIMER, this, event, !anythingMoving)) {
+
+                    somethingMoved = true;
+                }
+            }
+        } while(somethingMoved);
     }
 
 
