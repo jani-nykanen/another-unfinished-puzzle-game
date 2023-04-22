@@ -4,6 +4,7 @@ import { Sprite } from "../renderer/sprite.js";
 import { Vector2 } from "../vector/vector.js";
 import { MovingObject } from "./movingobject.js";
 import { Stage } from "./stage.js";
+import { Direction } from "./direction.js";
 
 
 export class Player extends MovingObject {
@@ -12,7 +13,7 @@ export class Player extends MovingObject {
     private spr : Sprite;
     private flip : Flip = Flip.None;
 
-    private dir : Vector2;
+    private automatedMovement : boolean = false;
 
 
     constructor(x : number, y : number) {
@@ -21,65 +22,52 @@ export class Player extends MovingObject {
 
         this.spr = new Sprite();
 
-        this.dir = new Vector2();
+        this.dir = Direction.None;
     }
 
 
-    private checkMovement(stage : Stage, event : CoreEvent) : boolean {
+    private checkMovement(stage : Stage, event : CoreEvent, autoDir = Direction.None) : boolean {
 
         const EPS = 0.25;
 
-        let stick = event.input.stick;
-        if (stick.length < EPS) {
+        let stick : Vector2;
+        let dir = autoDir;
 
-            return false;
+        this.automatedMovement = dir != Direction.None;
+    
+        if (dir == Direction.None) {
+
+            stick = event.input.stick;
+            if (stick.length < EPS) {
+
+                return false;
+            }
+
+            if (Math.abs(stick.x) >= Math.abs(stick.y)) {
+
+                dir = stick.x < 0 ? Direction.Left : Direction.Right;
+            }
+            else {
+
+                dir = stick.y < 0 ? Direction.Up : Direction.Down;
+            }
         }
-
-        let dirx = 0;
-        let diry = 0;
-
-        if (Math.abs(stick.x) >= Math.abs(stick.y)) {
-
-            dirx = Math.sign(stick.x);
-        }
-        else {
-
-            diry = Math.sign(stick.y);
-        }
-
-        if (dirx != 0 || diry != 0) {
-
-            this.target = Vector2.add(this.pos, new Vector2(dirx, diry));
-            this.moving = true;
-            this.moveTimer += 1.0;
-
-            this.dir.x = dirx;
-            this.dir.y = diry;
-
-            return true;
-        }
-        return false;
+        return this.moveTo(dir, stage);
     }
 
 
     private animate(event : CoreEvent) : void {
 
         const ANIM_SPEED = 6;
-        const EPS = 0.25;
+        const ROW = [0, 2, 1, 2, 0];
 
-        let row = 0;
-        if (Math.abs(this.dir.x) > EPS) {
+        let row = ROW[this.dir];
+        if (this.dir != Direction.None) {
 
-            row = 2;
-            this.flip = this.dir.x < 0 ? Flip.Horizontal : Flip.None;
-        }
-        else if (Math.abs(this.dir.y) > EPS) {
-
-            row = this.dir.y > 0 ? 0 : 1;
-            this.flip = Flip.None;
+            this.flip = this.dir == Direction.Left ? Flip.Horizontal : Flip.None;
         }
 
-        if (this.moving) {
+        if (this.moving && !this.automatedMovement) {
 
             this.spr.animate(row, 0, 3, ANIM_SPEED, event.step);
         }
@@ -99,17 +87,19 @@ export class Player extends MovingObject {
             this.updateMovement(moveSpeed, event, false);
             if (!this.moving) {
 
-                if (!this.checkMovement(stage, event)) {
+                if (!this.checkMovement(stage, event,
+                    stage.checkUnderlyingTile(this.pos.x, this.pos.y))) {
 
                     this.moveTimer = 0;
                     this.moving = false;
 
+                    this.automatedMovement = false;
+
                     return false;
-                }  
+                }       
             }
             return true;
         }
-
         return this.checkMovement(stage, event);
     }
 

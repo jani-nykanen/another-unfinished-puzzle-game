@@ -6,6 +6,7 @@ import { WallMap } from "./wallmap.js";
 import { GameObject } from "./gameobject.js";
 import { Player } from "./player.js";
 import { Crate } from "./crate.js";
+import { Direction } from "./direction.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -92,6 +93,15 @@ export class Stage {
         // TODO: Obtain these from the tilemap
         this.tileWidth = 16;
         this.tileHeight = 16;
+    }
+
+
+    private getStaticTile(x : number, y : number, def = 0) : number {
+
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return def;
+
+        return this.activeStaticLayer[y*this.width + x];
     }
 
 
@@ -243,6 +253,43 @@ export class Stage {
         }
 
         this.drawObjectLayer(canvas);
+    }
+
+
+    public canMoveTo(x : number, y : number, dir : Direction) : boolean {
+
+        const SOLID_TILES = [1, 2, 6, 9, 12];
+        // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
+
+        let tileID = this.getStaticTile(x, y);
+
+        if (SOLID_TILES.includes(tileID)) {
+
+            return false;
+        }
+
+        // "Arrows"
+        /*
+        if (tileID >= 17 && tileID <= 20 &&
+            ARROW_FORBIDDEN_DIR[tileID-17] == dir) {
+
+            return false;
+        }
+        */
+        return true;
+    }
+
+
+    public checkUnderlyingTile(x : number, y : number) : Direction {
+
+        const ARROW_DIR = [Direction.Right, Direction.Up, Direction.Left, Direction.Down];
+
+        let tileID = this.getStaticTile(x, y);
+        if (tileID >= 17 && tileID <= 20) {
+
+            return ARROW_DIR[tileID-17];
+        }
+        return Direction.None;
     }
 
 
