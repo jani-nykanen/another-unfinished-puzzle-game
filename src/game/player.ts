@@ -26,7 +26,7 @@ export class Player extends MovingObject {
     }
 
 
-    private checkMovement(stage : Stage, event : CoreEvent, autoDir = Direction.None) : boolean {
+    protected checkMovement(stage : Stage, event : CoreEvent, autoDir = Direction.None) : boolean {
 
         const EPS = 0.25;
 
@@ -56,7 +56,7 @@ export class Player extends MovingObject {
     }
 
 
-    private animate(event : CoreEvent) : void {
+    protected updateAnimation(event : CoreEvent) : void {
 
         const ANIM_SPEED = 6;
         const ROW = [0, 2, 1, 2, 0];
@@ -78,29 +78,12 @@ export class Player extends MovingObject {
     }
 
 
-    public update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean {
+    protected stopMovement() : void {
 
-        this.animate(event);
+        this.moveTimer = 0;
+        this.moving = false;
 
-        if (this.moving) {
-
-            this.updateMovement(moveSpeed, event, false);
-            if (!this.moving) {
-
-                if (!this.checkMovement(stage, event,
-                    stage.checkUnderlyingTile(this.pos.x, this.pos.y))) {
-
-                    this.moveTimer = 0;
-                    this.moving = false;
-
-                    this.automatedMovement = false;
-
-                    return false;
-                }       
-            }
-            return true;
-        }
-        return this.checkMovement(stage, event);
+        this.automatedMovement = false;
     }
 
 

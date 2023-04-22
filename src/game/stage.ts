@@ -45,7 +45,6 @@ const FRAME_SHIFT = [
 ];
 
 
-
 export class Stage {
 
 
@@ -263,7 +262,8 @@ export class Stage {
 
         let tileID = this.getStaticTile(x, y);
 
-        if (SOLID_TILES.includes(tileID)) {
+        if (SOLID_TILES.includes(tileID) ||
+            this.getObjectInTile(x, y) != undefined) {
 
             return false;
         }
@@ -291,6 +291,33 @@ export class Stage {
         }
         return Direction.None;
     }
+
+
+    public getObjectInTile(x : number, y : number) : GameObject | undefined {
+
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return undefined;
+
+        return this.activeObjectLayer[y*this.width + x];
+    }
+
+
+    public getObjectInDirection(x : number, y : number, dir : Direction) : GameObject | undefined {
+
+        const DIR_X = [0, 1, 0, -1, 0];
+        const DIR_Y = [0, 0, -1, 0, 1];
+
+        return this.getObjectInTile(x + DIR_X[dir], y + DIR_Y[dir]);
+    }
+
+
+    public updateObjectLayerTile(x : number, y : number, o : GameObject | undefined) : void {
+
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return;
+
+        this.activeObjectLayer[y*this.width + x] = o;
+    }   
 
 
     public centerCamera(canvas : Canvas) : void {

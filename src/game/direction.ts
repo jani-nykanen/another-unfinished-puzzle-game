@@ -8,3 +8,12 @@ export const enum Direction {
     Left = 3,
     Down = 4
 };
+
+
+export const inverseDirection = (dir : Direction) => [
+        Direction.None,
+        Direction.Left,
+        Direction.Down,
+        Direction.Right,
+        Direction.Up
+    ][dir];

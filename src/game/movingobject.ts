@@ -49,6 +49,10 @@ export abstract class MovingObject extends GameObject {
     }
 
 
+    protected abstract checkMovement(stage : Stage, event : CoreEvent, dir? : Direction) : boolean
+    protected updateAnimation(event : CoreEvent) : void {};
+
+
     protected moveTo(dir : Direction, stage : Stage) : boolean {
 
         const DIR_X = [1, 0, -1 , 0];
@@ -69,8 +73,41 @@ export abstract class MovingObject extends GameObject {
 
             this.dir = dir;
 
+            stage.updateObjectLayerTile(this.pos.x, this.pos.y, undefined);
+            stage.updateObjectLayerTile(this.target.x, this.target.y, this);
+
             return true;
         }
         return false;
     }
+
+
+    protected stopMovement() : void {
+
+        this.moveTimer = 0;
+        this.moving = false;
+    }
+
+
+    public update(moveSpeed : number, stage : Stage, event : CoreEvent) : boolean {
+
+        this.updateAnimation(event);
+
+        if (this.moving) {
+
+            this.updateMovement(moveSpeed, event, false);
+            if (!this.moving) {
+
+                if (!this.checkMovement(stage, event,
+                    stage.checkUnderlyingTile(this.pos.x, this.pos.y))) {
+
+                    this.stopMovement();
+                    return false;
+                }       
+            }
+            return true;
+        }
+        return this.checkMovement(stage, event);
+    }
+
 }
