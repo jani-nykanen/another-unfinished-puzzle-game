@@ -6,6 +6,8 @@ import { WallMap } from "./wallmap.js";
 import { GameObject } from "./gameobject.js";
 import { Player } from "./player.js";
 import { Crate } from "./crate.js";
+import { TileEffect } from "./tileeffect.js";
+import { ObjectType } from "./objecttype.js";
 import { Direction } from "./direction.js";
 
 
@@ -265,15 +267,24 @@ export class Stage {
     }
 
 
-    public canMoveTo(x : number, y : number, dir : Direction) : boolean {
+    public canMoveTo(x : number, y : number, dir : Direction, type : ObjectType) : boolean {
 
         const SOLID_TILES = [1, 2, 6, 9, 12];
         // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
+
+        // TODO: Merge all the conditions under one
+        // "return this or that or etc"
 
         let tileID = this.getStaticTile(x, y);
 
         if (SOLID_TILES.includes(tileID) ||
             this.getObjectInTile(x, y) != undefined) {
+
+            return false;
+        }
+
+        // Flame
+        if (tileID == 11 && (type & ObjectType.DestroyFlames) == 0) {
 
             return false;
         }
@@ -290,16 +301,30 @@ export class Stage {
     }
 
 
-    public checkUnderlyingTile(x : number, y : number) : Direction {
+    public checkUnderlyingTile(x : number, y : number) : TileEffect {
 
-        const ARROW_DIR = [Direction.Right, Direction.Up, Direction.Left, Direction.Down];
+        const ARROW_DIR = [
+            TileEffect.MoveRight, 
+            TileEffect.MoveUp, 
+            TileEffect.MoveLeft, 
+            TileEffect.MoveDown
+        ];
 
         let tileID = this.getStaticTile(x, y);
+
+        // Arrow
         if (tileID >= 17 && tileID <= 20) {
 
             return ARROW_DIR[tileID-17];
         }
-        return Direction.None;
+
+        // Flame
+        if (tileID == 11) {
+
+            return TileEffect.InsideFlame;
+        }
+
+        return TileEffect.None;
     }
 
 
@@ -327,6 +352,15 @@ export class Stage {
             return;
 
         this.activeObjectLayer[y*this.width + x] = o;
+    }   
+
+
+    public updateStaticLayerTile(x : number, y : number, value : number) : void {
+
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return;
+
+        this.activeStaticLayer[y*this.width + x] = value;
     }   
 
 

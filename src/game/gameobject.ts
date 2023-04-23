@@ -2,6 +2,7 @@ import { CoreEvent } from "../core/event.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Stage } from "./stage.js";
+import { ObjectType } from "./objecttype.js";
 
 
 export abstract class GameObject {
@@ -12,13 +13,7 @@ export abstract class GameObject {
 
     protected exist : boolean;
 
-    protected canPushObjects : boolean = false;
-
-
-    public get canMoveObjects() : boolean {
-
-        return this.canPushObjects;
-    }
+    protected type : ObjectType = 0;
 
 
     constructor(x : number, y : number, exist = true) {
@@ -30,7 +25,19 @@ export abstract class GameObject {
     }
 
 
+    public getType = () : ObjectType => this.type;
+
+
     abstract update(moveSpeed : number, stage : Stage, event : CoreEvent, canControl? : boolean) : boolean;
     abstract draw(canvas : Canvas, stage : Stage) : void;
     abstract isMoving() : boolean;
+
+
+    public doesExist = () : boolean => this.exist;
+
+
+    public makeExist() : void {
+
+        this.exist = true;
+    }
 }

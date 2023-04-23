@@ -2,9 +2,11 @@ import { CoreEvent } from "../core/event.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Direction, inverseDirection } from "./direction.js";
-import { GameObject } from "./gameobject";
+import { GameObject } from "./gameobject.js";
 import { MovingObject } from "./movingobject.js";
+import { ObjectType } from "./objecttype.js";
 import { Stage } from "./stage.js";
+import { TileEffect } from "./tileeffect.js";
 
 
 export class Crate extends MovingObject {
@@ -13,6 +15,8 @@ export class Crate extends MovingObject {
     constructor(x : number, y : number) {
 
         super(x, y, true);
+
+        this.type = ObjectType.DestroyFlames;
     }
 
 
@@ -45,7 +49,7 @@ export class Crate extends MovingObject {
             o = stage.getObjectInDirection(this.pos.x, this.pos.y, inverseDirection(dir));
 
             // TODO: Check if "not player"
-            if (o == undefined || !o.canMoveObjects)
+            if (o == undefined || (o.getType() & ObjectType.CanPushObject) == 0)
                 return false;
 
             // console.log(typeof(o));
@@ -54,8 +58,28 @@ export class Crate extends MovingObject {
     }
 
 
+    protected handleTileEffect(stage : Stage, eff : TileEffect) : void {
+
+        switch (eff) {
+
+        case TileEffect.InsideFlame:
+
+            this.exist = false;
+            stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
+            stage.updateObjectLayerTile(this.target.x, this.target.y, undefined);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+
     public draw(canvas : Canvas, stage : Stage) : void {
         
+        if (!this.exist)
+            return;
+
         let bmp = canvas.getBitmap("tileset1");
         if (bmp == undefined)
             return;

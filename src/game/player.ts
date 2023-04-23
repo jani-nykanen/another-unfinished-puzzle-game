@@ -5,6 +5,7 @@ import { Vector2 } from "../vector/vector.js";
 import { MovingObject } from "./movingobject.js";
 import { Stage } from "./stage.js";
 import { Direction } from "./direction.js";
+import { ObjectType } from "./objecttype.js";
 
 
 export class Player extends MovingObject {
@@ -24,7 +25,7 @@ export class Player extends MovingObject {
 
         this.dir = Direction.None;
 
-        this.canPushObjects = true;
+        this.type = ObjectType.CanPushObject;
     }
 
 

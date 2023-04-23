@@ -1,8 +1,9 @@
 import { CoreEvent } from "../core/event.js";
 import { Vector2 } from "../vector/vector.js";
-import { Direction } from "./direction";
+import { Direction } from "./direction.js";
 import { GameObject } from "./gameobject.js";
 import { Stage } from "./stage.js";
+import { TileEffect, tileEffectToDirection } from "./tileeffect.js";
 
 
 
@@ -52,6 +53,8 @@ export abstract class MovingObject extends GameObject {
 
     protected abstract checkMovement(stage : Stage, event : CoreEvent, 
         dir? : Direction, canControl? : boolean) : boolean
+
+    protected handleTileEffect(stage : Stage, eff : TileEffect) : void {}
     protected updateAnimation(event : CoreEvent) : void {};
 
 
@@ -67,7 +70,7 @@ export abstract class MovingObject extends GameObject {
         let diry = DIR_Y[dir-1];
 
         if ((dirx != 0 || diry != 0) &&
-            stage.canMoveTo(this.pos.x + dirx, this.pos.y + diry, dir)) {
+            stage.canMoveTo(this.pos.x + dirx, this.pos.y + diry, dir, this.type)) {
 
             this.target = Vector2.add(this.pos, new Vector2(dirx, diry));
             this.moving = true;
@@ -94,13 +97,19 @@ export abstract class MovingObject extends GameObject {
 
         this.updateAnimation(event);
 
+
+        let eff : TileEffect;
+        let dir : Direction;
+
         if (this.moving) {
 
             this.updateMovement(moveSpeed, stage, event, false);
             if (!this.moving) {
 
-                if (!this.checkMovement(stage, event,
-                    stage.checkUnderlyingTile(this.pos.x, this.pos.y), canControl)) {
+                eff = stage.checkUnderlyingTile(this.pos.x, this.pos.y);
+                this.handleTileEffect(stage, eff);
+
+                if (!this.checkMovement(stage, event, tileEffectToDirection(eff), canControl)) {
 
                     this.stopMovement();
                     return false;
