@@ -95,11 +95,12 @@ export abstract class MovingObject extends GameObject {
 
     public update(moveSpeed : number, stage : Stage, event : CoreEvent, canControl : boolean) : boolean {
 
+        if (!this.exist)
+            return false;
+
         this.updateAnimation(event);
 
-
         let eff : TileEffect;
-        let dir : Direction;
 
         if (this.moving) {
 

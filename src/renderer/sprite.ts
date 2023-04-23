@@ -77,4 +77,8 @@ export class Sprite {
             this.column * spriteWidth, this.row * spriteHeight,
             spriteWidth, spriteHeight, dx, dy, flip);
     }
+
+
+    public getFrame = () : number => this.column;
+    public getRow = () : number => this.row;
 }

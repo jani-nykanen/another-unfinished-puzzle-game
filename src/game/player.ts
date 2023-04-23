@@ -62,8 +62,13 @@ export class Player extends MovingObject {
 
     protected updateAnimation(event : CoreEvent) : void {
 
-        const ANIM_SPEED = 6;
         const ROW = [0, 2, 1, 2, 0];
+
+        if (this.automatedMovement || !this.moving) {
+
+            this.spr.setFrame(0, this.spr.getRow());
+            return;
+        }
 
         let row = ROW[this.dir];
         if (this.dir != Direction.None) {
@@ -71,14 +76,15 @@ export class Player extends MovingObject {
             this.flip = this.dir == Direction.Left ? Flip.Horizontal : Flip.None;
         }
 
-        if (this.moving && !this.automatedMovement) {
+        let frame = 0;
+        let shift = Number((this.pos.x | 0) % 2 == (this.pos.y | 0) % 2);
 
-            this.spr.animate(row, 0, 3, ANIM_SPEED, event.step);
-        }
-        else {
+        if (this.moving) {
 
-            this.spr.setFrame(0, row);
+            frame = shift*2 + Math.round(this.moveTimer);
         }
+
+        this.spr.setFrame(frame, row);
     }
 
 
