@@ -30,7 +30,11 @@ export abstract class GameObject {
 
     abstract update(moveSpeed : number, stage : Stage, event : CoreEvent, canControl? : boolean) : boolean;
     abstract draw(canvas : Canvas, stage : Stage) : void;
+
+    // TODO: Just... do it in some otherway (not every game object can even move!)
     abstract isMoving() : boolean;
+
+    protected setPositionEvent(x : number, y : number) : void {}
 
 
     public doesExist = () : boolean => this.exist;
@@ -39,5 +43,16 @@ export abstract class GameObject {
     public makeExist() : void {
 
         this.exist = true;
+    }
+
+
+    public setPosition(x : number, y : number) : void {
+
+        this.pos.x = x;
+        this.pos.y = y;
+
+        this.exist = true;
+
+        this.setPositionEvent(x, y);
     }
 }

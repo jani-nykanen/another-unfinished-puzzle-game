@@ -1,6 +1,6 @@
-import { Assets } from "../core/assets.js";
 import { CoreEvent } from "../core/event.js";
 import { Scene, SceneParam } from "../core/scene.js";
+import { InputState } from "../input/inputstate.js";
 import { Canvas, TextAlign } from "../renderer/canvas.js";
 import { Stage } from "./stage.js";
 
@@ -88,7 +88,14 @@ export class Game implements Scene {
 
     public update(event: CoreEvent): void {
         
-        
+        if (event.input.getAction("undo") == InputState.Pressed) {
+
+            this.stage.undo();
+        }
+        else if (event.input.getAction("restart") == InputState.Pressed) {
+
+            this.stage.reset();
+        }
     }
 
 

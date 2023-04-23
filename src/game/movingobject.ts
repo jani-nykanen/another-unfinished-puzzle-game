@@ -21,6 +21,8 @@ export abstract class MovingObject extends GameObject {
     constructor(x : number, y : number, exist = true) {
 
         super(x, y, exist);
+
+        this.target = this.pos.clone();
     }
 
 
@@ -56,6 +58,18 @@ export abstract class MovingObject extends GameObject {
 
     protected handleTileEffect(stage : Stage, eff : TileEffect) : void {}
     protected updateAnimation(event : CoreEvent) : void {};
+
+
+    protected setPositionEvent(x : number, y : number) : void {
+
+        this.target.x = x;
+        this.target.y = y;
+
+        this.renderPos = this.pos.clone();
+
+        this.moving = false;
+        this.moveTimer = 0;
+    }
 
 
     protected moveTo(dir : Direction, stage : Stage) : boolean {

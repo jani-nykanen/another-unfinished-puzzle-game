@@ -9,6 +9,7 @@ import { Crate } from "./crate.js";
 import { TileEffect } from "./tileeffect.js";
 import { ObjectType } from "./objecttype.js";
 import { Direction } from "./direction.js";
+import { negMod } from "../math/utility.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -47,14 +48,25 @@ const FRAME_SHIFT = [
 ];
 
 
+const UNDO_BUFFER_SIZE = 64;
+
+
 export class Stage {
 
 
     private baseMap : Tilemap;
 
     private objectPool : Array<GameObject>;
-    private activeObjectLayer : Array<GameObject | undefined> | undefined = undefined;
-    private activeStaticLayer : Array<number> | undefined = undefined;
+    private activeObjectLayer : Array<GameObject | undefined>;
+    private activeStaticLayer : Array<number>;
+
+    private initialStaticLayer : Array<number>;
+    private initialObjectLayer : Array<GameObject | undefined>;
+
+    private objectLayerBuffer : Array<Array<GameObject | undefined>>;
+    private staticLayerBuffer : Array<number[]>;
+    private undoBufferPointer : number = 0;
+    private undoCount : number = 0;
 
     private wallMap : WallMap;
 
@@ -62,6 +74,8 @@ export class Stage {
     private height : number;
 
     private tileAnimationTimer : number;
+
+    private wasMoving : boolean = false;
     
     public readonly tileWidth : number;
     public readonly tileHeight : number;
@@ -83,17 +97,57 @@ export class Stage {
         this.activeObjectLayer = (new Array<GameObject> (this.width*this.height)).fill(undefined);
 
         this.activeStaticLayer = baseMap.cloneLayer("base");
-        if (this.activeStaticLayer != undefined) {
+        if (this.activeStaticLayer == undefined) {
 
-            this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
-            this.parseObjects();
+            throw "Base layer missing!";
         }
+
+        this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
+        this.parseObjects();
+        
+        this.initialStaticLayer = Array.from(this.activeStaticLayer);
+        this.initialObjectLayer = Array.from(this.activeObjectLayer);
+
+        this.objectLayerBuffer = new Array<Array<GameObject | undefined>> (UNDO_BUFFER_SIZE);
+        this.staticLayerBuffer = new Array<number[]> (UNDO_BUFFER_SIZE);
+        this.initUndoBuffers();
 
         this.tileAnimationTimer = 0.0;
 
         // TODO: Obtain these from the tilemap
         this.tileWidth = 16;
         this.tileHeight = 16;
+    }
+
+
+    private initUndoBuffers() : void {
+        
+        this.staticLayerBuffer[0] = Array.from(this.activeStaticLayer);
+        this.objectLayerBuffer[0] = Array.from(this.activeObjectLayer);
+
+        for (let i = 1; i < UNDO_BUFFER_SIZE; ++ i) {
+
+            this.staticLayerBuffer[i] = (new Array<number> (this.width*this.height)).fill(0);
+            this.objectLayerBuffer[i] = (new Array<GameObject | undefined> (this.width*this.height)).fill(undefined);
+        }
+    }
+
+
+    private copyStateToBuffer() : void {
+
+        this.undoBufferPointer = (this.undoBufferPointer + 1) % UNDO_BUFFER_SIZE;
+        this.undoCount = Math.min(UNDO_BUFFER_SIZE-1, this.undoCount+1);
+
+        //
+        // This should be faster and more memory efficient than just 
+        // "Array.from"ing the current state to the buffer, which always
+        // creates a new array
+        //
+        for (let i = 0; i < this.width*this.height; ++ i) {
+
+            this.staticLayerBuffer[this.undoBufferPointer][i] = this.activeStaticLayer[i];
+            this.objectLayerBuffer[this.undoBufferPointer][i] = this.activeObjectLayer[i];
+        }
     }
 
 
@@ -225,9 +279,16 @@ export class Stage {
 
             if (o.isMoving()) {
 
+                this.wasMoving = true;
                 anythingMoving = true;
                 break;
             }
+        }
+
+        if (this.wasMoving && !anythingMoving) {
+
+            this.copyStateToBuffer();
+            this.wasMoving = false;
         }
 
         do {
@@ -372,6 +433,57 @@ export class Stage {
         canvas.transform
             .translate(canvas.width/2 - dx, canvas.height/2 - dy)
             .use();
+    }
+
+
+    public undo() : boolean {
+
+        if (this.undoCount == 0)
+            return false;
+
+        this.undoBufferPointer = negMod(this.undoBufferPointer-1, UNDO_BUFFER_SIZE);
+
+        let i : number;
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                i = y * this.width + x;
+
+                this.activeStaticLayer[i] = this.staticLayerBuffer[this.undoBufferPointer][i];
+                this.activeObjectLayer[i] = this.objectLayerBuffer[this.undoBufferPointer][i];
+
+                if (this.activeObjectLayer[i] != undefined) {
+
+                    this.activeObjectLayer[i].setPosition(x, y);
+                }
+            }
+        }
+        -- this.undoCount;
+
+        return true;
+    }
+
+
+    public reset() : void {
+
+        let i : number;
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                i = y * this.width + x;
+
+                this.activeStaticLayer[i] = this.initialStaticLayer[i];
+                this.activeObjectLayer[i] = this.initialObjectLayer[i];
+
+                if (this.activeObjectLayer[i] != undefined) {
+
+                    this.activeObjectLayer[i].setPosition(x, y);
+                }
+            }
+        }
+        this.copyStateToBuffer();
     }
 
 
