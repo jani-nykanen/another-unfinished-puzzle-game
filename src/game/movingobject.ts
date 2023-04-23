@@ -141,4 +141,21 @@ export abstract class MovingObject extends GameObject {
 
         return this.moving;
     }
+
+    
+    public checkConflicts(stage : Stage) : void {
+
+        if (!this.moving)
+            return;
+
+        if (stage.getObjectInTile(this.target.x, this.target.y)) {
+
+            this.moving = false;
+            this.moveTimer = 0.0;
+            this.target = this.pos.clone();
+            this.renderPos = this.pos.clone();
+
+            stage.updateObjectLayerTile(this.pos.x, this.pos.y, this);
+        }
+    }
 }

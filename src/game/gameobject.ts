@@ -55,4 +55,7 @@ export abstract class GameObject {
 
         this.setPositionEvent(x, y);
     }
+
+
+    public checkConflicts(stage : Stage) : void {}
 }

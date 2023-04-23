@@ -302,6 +302,16 @@ export class Stage {
                 }
             }
         } while(somethingMoved);
+
+
+        // Needed because of the "arrows"
+        for (let o of this.objectPool) {
+
+            if (o != undefined && o.doesExist()) {
+
+                o.checkConflicts(this);
+            }
+        }
     }
 
 
