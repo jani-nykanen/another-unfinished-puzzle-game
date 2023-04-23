@@ -114,7 +114,7 @@ export abstract class MovingObject extends GameObject {
 
         this.updateAnimation(event);
 
-        let eff : TileEffect;
+        let eff = TileEffect.None;
 
         if (this.moving) {
 
@@ -133,7 +133,14 @@ export abstract class MovingObject extends GameObject {
             }
             return false;
         }
-        return this.checkMovement(stage, event, Direction.None, canControl);
+        /*
+        if (canControl) {
+
+            eff = stage.checkUnderlyingTile(this.pos.x, this.pos.y);
+            this.handleTileEffect(stage, eff);
+        }
+        */
+        return this.checkMovement(stage, event, tileEffectToDirection(eff), canControl);
     }
 
 
