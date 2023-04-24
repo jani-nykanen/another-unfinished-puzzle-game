@@ -3,13 +3,12 @@ import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Direction, inverseDirection } from "./direction.js";
 import { GameObject } from "./gameobject.js";
-import { MovingObject } from "./movingobject.js";
 import { ObjectType } from "./objecttype.js";
 import { Stage } from "./stage.js";
 import { TileEffect } from "./tileeffect.js";
 
 
-export class Crate extends MovingObject {
+export class Crate extends GameObject {
 
 
     constructor(x : number, y : number) {
@@ -55,23 +54,6 @@ export class Crate extends MovingObject {
             // console.log(typeof(o));
         }
         return this.moveTo(dir, stage);
-    }
-
-
-    protected handleTileEffect(stage : Stage, eff : TileEffect) : void {
-
-        switch (eff) {
-
-        case TileEffect.InsideFlame:
-
-            this.exist = false;
-            stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
-            stage.updateObjectLayerTile(this.target.x, this.target.y, undefined);
-            break;
-
-        default:
-            break;
-        }
     }
 
 

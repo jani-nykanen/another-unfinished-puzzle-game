@@ -2,13 +2,13 @@ import { CoreEvent } from "../core/event.js";
 import { Canvas, Flip } from "../renderer/canvas.js";
 import { Sprite } from "../renderer/sprite.js";
 import { Vector2 } from "../vector/vector.js";
-import { MovingObject } from "./movingobject.js";
+import { GameObject } from "./gameobject.js";
 import { Stage } from "./stage.js";
 import { Direction } from "./direction.js";
 import { ObjectType } from "./objecttype.js";
 
 
-export class Player extends MovingObject {
+export class Player extends GameObject {
 
 
     private spr : Sprite;
