@@ -471,6 +471,8 @@ export class Stage {
 
     public checkUnderlyingTile(x : number, y : number) : TileEffect {
 
+        // TODO: Lookup table for everything
+
         const ARROW_DIR = [
             TileEffect.MoveRight, 
             TileEffect.MoveUp, 
@@ -504,6 +506,34 @@ export class Stage {
         }
 
         return TileEffect.None;
+    }
+
+
+    public interactWithTiles(x : number, y : number) : boolean {
+
+        let tileID = this.getStaticTile(x, y);
+
+        // Bush
+        if (tileID == 12 &&
+            this.activeInventory.torchCount > 0) {
+
+            this.updateStaticLayerTile(x, y, 11);
+            this.activeInventory.useTorch();
+
+            return true;
+        }
+
+        // Lock
+        if (tileID == 9 &&
+            this.activeInventory.keyCount > 0) {
+
+            this.updateStaticLayerTile(x, y, 0);
+            this.activeInventory.useKey();
+
+            return true;
+        }
+
+        return false;
     }
 
 

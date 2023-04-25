@@ -120,8 +120,16 @@ export abstract class GameObject {
         const DIR_X = [1, 0, -1 , 0];
         const DIR_Y = [0, -1, 0, 1];
 
-        if (dir == Direction.None)
-            return false;
+        if (dir == Direction.None) {
+
+            this.target = this.pos.clone();
+            this.moving = true;
+            this.moveTimer += 1.0;
+
+            this.dir = dir;
+
+            return true;
+        }
 
         let dirx = DIR_X[dir-1];
         let diry = DIR_Y[dir-1];

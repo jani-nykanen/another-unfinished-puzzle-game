@@ -5,6 +5,9 @@ import { GamePad } from "./gamepad.js";
 import { Vector2 } from "../vector/vector.js";
 
 
+const INPUT_DIRECTION_DEADZONE = 0.25;
+
+
 // Heh, "class action"
 class Action {
 
@@ -18,6 +21,7 @@ class Action {
 
         this.keys = Array.from(keys);
         this.mouseButtons = Array.from(mouseButtons);
+        this.gamepadButtons = Array.from(gamepadButtons);
     }
 }
 
@@ -28,6 +32,8 @@ export class InputManager {
     private actions : Map<string, Action>;
 
     private virtualStick : Vector2;
+    private oldStick : Vector2;
+    private stickDelta : Vector2;
     
     public readonly keyboard : Keyboard;
     public readonly mouse : Mouse;
@@ -57,6 +63,8 @@ export class InputManager {
         const DEADZONE = 0.25;
 
         let stick = new Vector2();
+        
+        this.oldStick = this.stick.clone();
 
         if ((this.keyboard.getKeyState("ArrowLeft") & InputState.DownOrPressed) == 1 ||
             (this.gamepad.getButtonState(14) & InputState.DownOrPressed) == 1) {
@@ -87,10 +95,15 @@ export class InputManager {
         if (stick.length >= DEADZONE) {
 
             this.virtualStick = stick;
-            return;
+        }
+        else {
+
+            this.virtualStick.zeros();
         }
 
-        this.virtualStick.zeros();
+        this.stickDelta = new Vector2(
+            this.stick.x - this.oldStick.x,
+            this.stick.y - this.oldStick.y);
     }
 
 
@@ -145,7 +158,46 @@ export class InputManager {
                 return state;
         }
 
+        for (let b of action.gamepadButtons) {
+
+            state = this.gamepad.getButtonState(b);
+            if (state != InputState.Up)
+                return state;
+        }
+
         return state;
+    }
+
+
+    public upPress() : boolean {
+
+        return this.stick.y < 0 && 
+            this.oldStick.y >= -INPUT_DIRECTION_DEADZONE &&
+            this.stickDelta.y < -INPUT_DIRECTION_DEADZONE;
+    }
+
+
+    public downPress() : boolean {
+
+        return this.stick.y > 0 && 
+            this.oldStick.y <= INPUT_DIRECTION_DEADZONE &&
+            this.stickDelta.y > INPUT_DIRECTION_DEADZONE;
+    }
+
+
+    public leftPress() : boolean {
+
+        return this.stick.x < 0 && 
+            this.oldStick.x >= -INPUT_DIRECTION_DEADZONE &&
+            this.stickDelta.x < -INPUT_DIRECTION_DEADZONE;
+    }
+
+    
+    public rightPress() : boolean {
+
+        return this.stick.x > 0 && 
+            this.oldStick.x <= INPUT_DIRECTION_DEADZONE &&
+            this.stickDelta.x > INPUT_DIRECTION_DEADZONE;
     }
 
 

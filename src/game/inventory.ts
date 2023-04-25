@@ -35,6 +35,18 @@ export class Inventory {
     }
 
 
+    public useKey() : void {
+
+        this.keys = Math.max(0, this.keys-1);
+    }
+
+
+    public useTorch() : void {
+
+        this.torches = Math.max(0, this.torches-1);
+    }
+
+
     public clear() : void {
 
         this.keys = 0;

@@ -9,6 +9,9 @@ import { Inventory } from "./inventory.js";
 import { TileEffect } from "./tileeffect";
 
 
+const ANIMATION_ROW = [0, 2, 1, 2, 0];
+
+
 export class Player extends GameObject {
 
 
@@ -32,13 +35,59 @@ export class Player extends GameObject {
     }
 
 
+    private checkTileInteraction(stage : Stage, event : CoreEvent) : boolean {
+
+        let dx = 0;
+        let dy = 0;
+
+        let dir = this.dir;
+
+        if (event.input.upPress()) {
+
+            dy = -1;
+            dir = Direction.Up;
+        }
+        else if (event.input.downPress()) {
+
+            dy = 1;
+            dir = Direction.Down;
+        }
+        else if (event.input.leftPress()) {
+
+            dx = -1;
+            dir = Direction.Left;
+        }
+        else if (event.input.rightPress()) {
+
+            dx = 1;
+            dir = Direction.Right;
+        }
+
+        if (dx != 0 || dy != 0) {
+
+            if (stage.interactWithTiles(this.pos.x + dx, this.pos.y + dy)) {
+
+                this.dir = dir;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     protected checkMovement(stage : Stage, event : CoreEvent) : boolean {
 
         const EPS = 0.25;
 
-        let dir = Direction.None;
+        if (this.checkTileInteraction(stage, event)) {
 
+            this.spr.setFrame(4, ANIMATION_ROW[this.dir]);
+            return this.moveTo(Direction.None, stage);
+        }
+
+        let dir = Direction.None;
         let stick = event.input.stick;
+
         if (stick.length < EPS) {
 
             return false;
@@ -58,7 +107,8 @@ export class Player extends GameObject {
 
     protected updateAnimation(event : CoreEvent) : void {
 
-        const ROW = [0, 2, 1, 2, 0];
+        if (this.moving && this.dir == Direction.None)
+            return;
 
         if (this.automatedMovement || !this.moving) {
 
@@ -66,7 +116,7 @@ export class Player extends GameObject {
             return;
         }
 
-        let row = ROW[this.dir];
+        let row = ANIMATION_ROW[this.dir];
         if (this.dir != Direction.None) {
 
             this.flip = this.dir == Direction.Left ? Flip.Horizontal : Flip.None;
@@ -79,7 +129,6 @@ export class Player extends GameObject {
 
             frame = shift*2 + Math.round(this.moveTimer);
         }
-
         this.spr.setFrame(frame, row);
     }
 
