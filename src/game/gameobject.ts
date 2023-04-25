@@ -21,6 +21,7 @@ export abstract class GameObject {
 
     protected moving : boolean = false;
     protected moveTimer : number = 0.0;
+    protected automatedMovement : boolean = false;
 
     protected dir : Direction = Direction.None;
 
@@ -60,9 +61,9 @@ export abstract class GameObject {
     }
 
 
-    protected abstract checkMovement(stage : Stage, event : CoreEvent, 
-        dir? : Direction, canControl? : boolean) : boolean
+    protected abstract checkMovement(stage : Stage, event : CoreEvent) : boolean
     protected updateAnimation(event : CoreEvent) : void {};
+    protected tileEffectEvent(stage : Stage, eff : TileEffect) : void {}
 
 
     protected handleTileEffect(stage : Stage, eff : TileEffect) : boolean {
@@ -72,6 +73,8 @@ export abstract class GameObject {
             case TileEffect.InsideFlame:
 
                 if ((this.type & ObjectType.DestroyFlames) != 0) {
+
+                    this.tileEffectEvent(stage, eff);
 
                     this.exist = false;
                     stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
@@ -85,7 +88,24 @@ export abstract class GameObject {
             case TileEffect.MoveRight:
             case TileEffect.MoveUp:
 
-                return this.moveTo(tileEffectToDirection(eff), stage);
+                if (this.moveTo(tileEffectToDirection(eff), stage)) {
+
+                    this.automatedMovement = true;
+                    return true;
+                }
+                return false;
+
+            // Collectibles:
+            case TileEffect.Key:
+            case TileEffect.Torch:
+
+                if ((this.type & ObjectType.CanCollectItems) != 0) {
+
+                    this.tileEffectEvent(stage, eff);
+
+                    stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
+                }
+                break;
     
             default:
                 break;
@@ -107,7 +127,7 @@ export abstract class GameObject {
         let diry = DIR_Y[dir-1];
 
         if ((dirx != 0 || diry != 0) &&
-            stage.canMoveTo(this.pos.x + dirx, this.pos.y + diry, dir, this.type)) {
+            stage.canMoveTo(this.pos.x + dirx, this.pos.y + diry, this.type)) {
 
             this.target = Vector2.add(this.pos, new Vector2(dirx, diry));
             this.moving = true;
@@ -120,13 +140,6 @@ export abstract class GameObject {
             return true;
         }
         return false;
-    }
-
-
-    protected stopMovement() : void {
-
-        this.moveTimer = 0;
-        this.moving = false;
     }
 
 
@@ -152,13 +165,17 @@ export abstract class GameObject {
             return true;
         }
 
-        if (!this.checkMovement(stage, event, Direction.None, canControl)) {
+        if (canControl) {
 
-            this.moveTimer = 0;
-        }
-        else {
+            if (!this.checkMovement(stage, event)) {
 
-            return true;
+                this.moveTimer = 0;
+            }
+            else {
+
+                this.automatedMovement = false;
+                return true;
+            }
         }
         return false;
     }

@@ -19,40 +19,33 @@ export class Crate extends GameObject {
     }
 
 
-    protected checkMovement(stage: Stage, event: CoreEvent, 
-        autoDir = Direction.None, canControl = true): boolean {
+    protected checkMovement(stage: Stage, event: CoreEvent): boolean {
         
         const EPS = 0.25;
-
-        let stick : Vector2;
-        let dir = autoDir;
+        
+        let dir = Direction.None;
         let o : GameObject;
 
-        if (dir == Direction.None && canControl) {
+        let stick = event.input.stick;
+        if (stick.length < EPS) {
 
-            stick = event.input.stick;
-            if (stick.length < EPS) {
-
-                return false;
-            }
-
-            if (Math.abs(stick.x) >= Math.abs(stick.y)) {
-
-                dir = stick.x < 0 ? Direction.Left : Direction.Right;
-            }
-            else {
-
-                dir = stick.y < 0 ? Direction.Up : Direction.Down;
-            }
-
-            o = stage.getObjectInDirection(this.pos.x, this.pos.y, inverseDirection(dir));
-
-            // TODO: Check if "not player"
-            if (o == undefined || (o.getType() & ObjectType.CanPushObject) == 0)
-                return false;
-
-            // console.log(typeof(o));
+            return false;
         }
+
+        if (Math.abs(stick.x) >= Math.abs(stick.y)) {
+
+            dir = stick.x < 0 ? Direction.Left : Direction.Right;
+        }
+        else {
+
+            dir = stick.y < 0 ? Direction.Up : Direction.Down;
+        }
+
+        o = stage.getObjectInDirection(this.pos.x, this.pos.y, inverseDirection(dir));
+
+        if (o == undefined || (o.getType() & ObjectType.CanPushObject) == 0)
+            return false;
+
         return this.moveTo(dir, stage);
     }
 

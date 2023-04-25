@@ -77,6 +77,8 @@ export class Game implements Scene {
             canvas.getBitmap("font"), 
             "Password: 123456", canvas.width/2, canvas.height-12, 
             0, 0, TextAlign.Center);
+
+        this.stage.drawHUD(canvas);
     }
 
 

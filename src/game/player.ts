@@ -1,11 +1,12 @@
 import { CoreEvent } from "../core/event.js";
 import { Canvas, Flip } from "../renderer/canvas.js";
 import { Sprite } from "../renderer/sprite.js";
-import { Vector2 } from "../vector/vector.js";
 import { GameObject } from "./gameobject.js";
 import { Stage } from "./stage.js";
 import { Direction } from "./direction.js";
 import { ObjectType } from "./objecttype.js";
+import { Inventory } from "./inventory.js";
+import { TileEffect } from "./tileeffect";
 
 
 export class Player extends GameObject {
@@ -14,10 +15,10 @@ export class Player extends GameObject {
     private spr : Sprite;
     private flip : Flip = Flip.None;
 
-    private automatedMovement : boolean = false;
+    private inventory : Inventory;
 
 
-    constructor(x : number, y : number) {
+    constructor(x : number, y : number, inv : Inventory) {
 
         super(x, y, true);
 
@@ -25,36 +26,31 @@ export class Player extends GameObject {
 
         this.dir = Direction.None;
 
-        this.type = ObjectType.CanPushObject;
+        this.type = ObjectType.CanPushObject | ObjectType.CanCollectItems;
+
+        this.inventory = inv;
     }
 
 
-    protected checkMovement(stage : Stage, event : CoreEvent, 
-        autoDir = Direction.None, canControl = true) : boolean {
+    protected checkMovement(stage : Stage, event : CoreEvent) : boolean {
 
         const EPS = 0.25;
 
-        let stick : Vector2;
-        let dir = autoDir;
+        let dir = Direction.None;
 
-        this.automatedMovement = dir != Direction.None;
-    
-        if (dir == Direction.None && canControl) {
+        let stick = event.input.stick;
+        if (stick.length < EPS) {
 
-            stick = event.input.stick;
-            if (stick.length < EPS) {
+            return false;
+        }
 
-                return false;
-            }
+        if (Math.abs(stick.x) >= Math.abs(stick.y)) {
 
-            if (Math.abs(stick.x) >= Math.abs(stick.y)) {
+            dir = stick.x < 0 ? Direction.Left : Direction.Right;
+        }
+        else {
 
-                dir = stick.x < 0 ? Direction.Left : Direction.Right;
-            }
-            else {
-
-                dir = stick.y < 0 ? Direction.Up : Direction.Down;
-            }
+            dir = stick.y < 0 ? Direction.Up : Direction.Down;
         }
         return this.moveTo(dir, stage);
     }
@@ -88,12 +84,23 @@ export class Player extends GameObject {
     }
 
 
-    protected stopMovement() : void {
+    protected tileEffectEvent(stage : Stage, eff : TileEffect) : void {
 
-        this.moveTimer = 0;
-        this.moving = false;
+        switch (eff) {
 
-        this.automatedMovement = false;
+        case TileEffect.Key:
+
+            this.inventory.addKey();
+            break;
+
+        case TileEffect.Torch:
+
+            this.inventory.addTorch();
+            break;
+
+        default:
+            break;
+        }
     }
 
 

@@ -9,6 +9,7 @@ import { Crate } from "./crate.js";
 import { TileEffect } from "./tileeffect.js";
 import { ObjectType } from "./objecttype.js";
 import { Direction } from "./direction.js";
+import { Inventory } from "./inventory.js";
 import { negMod } from "../math/utility.js";
 
 
@@ -57,14 +58,17 @@ export class Stage {
     private baseMap : Tilemap;
 
     private objectPool : Array<GameObject>;
+
     private activeObjectLayer : Array<GameObject | undefined>;
     private activeStaticLayer : Array<number>;
+    private activeInventory : Inventory;
 
     private initialStaticLayer : Array<number>;
     private initialObjectLayer : Array<GameObject | undefined>;
 
     private objectLayerBuffer : Array<Array<GameObject | undefined>>;
     private staticLayerBuffer : Array<number[]>;
+    private inventoryBuffer : Array<Inventory>;
     private undoBufferPointer : number = 0;
     private undoCount : number = 0;
 
@@ -74,6 +78,8 @@ export class Stage {
     private height : number;
 
     private tileAnimationTimer : number;
+
+    private purpleWallState : boolean = true;
 
     private wasMoving : boolean = false;
     
@@ -103,13 +109,14 @@ export class Stage {
         }
 
         this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
-        this.parseObjects();
         
+        this.activeInventory = new Inventory();
+
+        this.parseObjects();
+
         this.initialStaticLayer = Array.from(this.activeStaticLayer);
         this.initialObjectLayer = Array.from(this.activeObjectLayer);
 
-        this.objectLayerBuffer = new Array<Array<GameObject | undefined>> (UNDO_BUFFER_SIZE);
-        this.staticLayerBuffer = new Array<number[]> (UNDO_BUFFER_SIZE);
         this.initUndoBuffers();
 
         this.tileAnimationTimer = 0.0;
@@ -122,13 +129,19 @@ export class Stage {
 
     private initUndoBuffers() : void {
         
+        this.objectLayerBuffer = new Array<Array<GameObject | undefined>> (UNDO_BUFFER_SIZE);
+        this.staticLayerBuffer = new Array<number[]> (UNDO_BUFFER_SIZE);
+        this.inventoryBuffer   = new Array<Inventory> (UNDO_BUFFER_SIZE);
+
         this.staticLayerBuffer[0] = Array.from(this.activeStaticLayer);
         this.objectLayerBuffer[0] = Array.from(this.activeObjectLayer);
+        this.inventoryBuffer[0]   = new Inventory();
 
         for (let i = 1; i < UNDO_BUFFER_SIZE; ++ i) {
 
             this.staticLayerBuffer[i] = (new Array<number> (this.width*this.height)).fill(0);
             this.objectLayerBuffer[i] = (new Array<GameObject | undefined> (this.width*this.height)).fill(undefined);
+            this.inventoryBuffer[i]   = new Inventory();
         }
     }
 
@@ -147,6 +160,7 @@ export class Stage {
 
             this.staticLayerBuffer[this.undoBufferPointer][i] = this.activeStaticLayer[i];
             this.objectLayerBuffer[this.undoBufferPointer][i] = this.activeObjectLayer[i];
+            this.inventoryBuffer[this.undoBufferPointer].copyDataFrom(this.activeInventory);
         }
     }
 
@@ -180,7 +194,7 @@ export class Stage {
                 // Player
                 case 3:
 
-                    o = new Player(x, y) as GameObject; 
+                    o = new Player(x, y, this.activeInventory) as GameObject; 
                     break;
 
                 // Crate
@@ -265,6 +279,48 @@ export class Stage {
     }
 
 
+    private toggleWalls(state : boolean) : void {
+
+        let tileID : number;
+        for (let i = 0; i < this.initialStaticLayer.length; ++ i) {
+
+            tileID = this.initialStaticLayer[i];
+
+            if (tileID == 6) {
+
+                this.activeStaticLayer[i] = state ? 7 : 6;
+            }
+            else if (tileID == 7) {
+
+                this.activeStaticLayer[i] = state ? 6 : 7;
+            }
+            
+        }
+    }
+
+
+    private checkWallButtons(force = false) : void {
+
+        let freeButton = false;
+
+        for (let i = 0; i < this.activeStaticLayer.length; ++ i) {
+
+            if (this.activeStaticLayer[i] == 8 &&
+                this.activeObjectLayer[i] == undefined) {
+ 
+                freeButton = true;
+                break;
+            }
+        }
+
+        if (this.purpleWallState != freeButton || force) {
+
+            this.toggleWalls(!freeButton);
+        }
+        this.purpleWallState = freeButton;
+    }
+
+
     public updatePhysics(event : CoreEvent) : void {
 
         const ANIMATION_SPEED = 1.0/600.0;
@@ -286,6 +342,8 @@ export class Stage {
         }
 
         if (this.wasMoving && !anythingMoving) {
+
+            this.checkWallButtons();
 
             this.copyStateToBuffer();
             this.wasMoving = false;
@@ -338,9 +396,42 @@ export class Stage {
     }
 
 
-    public canMoveTo(x : number, y : number, dir : Direction, type : ObjectType) : boolean {
+    public drawHUD(canvas : Canvas) : void {
+        
+        const POS_X = 4;
+
+        let bmpTileset = canvas.getBitmap("tileset1");
+        if (bmpTileset == undefined)
+            return;
+
+        let dy = canvas.height/2 - this.tileHeight/2;
+
+        dy -= (this.activeInventory.keyCount + this.activeInventory.torchCount) * this.tileHeight/2.0;
+
+        for (let i = 0; i < this.activeInventory.keyCount; ++ i) {
+
+            canvas.drawBitmapRegion(bmpTileset, 
+                48, 16, this.tileWidth, this.tileHeight,
+                POS_X, dy);
+
+            dy += 16;
+        }
+
+        for (let i = 0; i < this.activeInventory.torchCount; ++ i) {
+
+            canvas.drawBitmapRegion(bmpTileset, 
+                32, 32, this.tileWidth, this.tileHeight,
+                POS_X, dy);
+
+            dy += 16;
+        }
+    }
+
+
+    public canMoveTo(x : number, y : number, type : ObjectType) : boolean {
 
         const SOLID_TILES = [1, 2, 6, 9, 12];
+        const ITEMS = [10, 13];
         // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
 
         // TODO: Merge all the conditions under one
@@ -356,6 +447,12 @@ export class Stage {
 
         // Flame
         if (tileID == 11 && (type & ObjectType.DestroyFlames) == 0) {
+
+            return false;
+        }
+
+        // Item
+        if ((type & ObjectType.CanCollectItems) == 0 && ITEMS.includes(tileID)) {
 
             return false;
         }
@@ -393,6 +490,17 @@ export class Stage {
         if (tileID == 11) {
 
             return TileEffect.InsideFlame;
+        }
+
+        // Key
+        if (tileID == 10) {
+
+            return TileEffect.Key;
+        }
+        // Torch
+        if (tileID == 13) {
+
+            return TileEffect.Torch;
         }
 
         return TileEffect.None;
@@ -462,6 +570,7 @@ export class Stage {
 
                 this.activeStaticLayer[i] = this.staticLayerBuffer[this.undoBufferPointer][i];
                 this.activeObjectLayer[i] = this.objectLayerBuffer[this.undoBufferPointer][i];
+                this.activeInventory.copyDataFrom(this.inventoryBuffer[this.undoBufferPointer]);
 
                 if (this.activeObjectLayer[i] != undefined) {
 
@@ -469,6 +578,8 @@ export class Stage {
                 }
             }
         }
+        this.checkWallButtons(true);
+
         -- this.undoCount;
 
         return true;
@@ -486,6 +597,7 @@ export class Stage {
 
                 this.activeStaticLayer[i] = this.initialStaticLayer[i];
                 this.activeObjectLayer[i] = this.initialObjectLayer[i];
+                this.activeInventory.clear();
 
                 if (this.activeObjectLayer[i] != undefined) {
 
