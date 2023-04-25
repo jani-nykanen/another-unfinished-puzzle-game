@@ -153,15 +153,15 @@ export class Player extends GameObject {
     }
 
 
-    public draw(canvas : Canvas, stage : Stage) : void {
+    public draw(canvas : Canvas, stage : Stage, shiftx = 0, shifty = 0) : void {
         
         let bmp = canvas.getBitmap("player");
         if (bmp == undefined)
             return;
 
         this.spr.draw(canvas, bmp, stage.tileWidth, stage.tileHeight,
-            Math.round(this.renderPos.x * stage.tileWidth) | 0,
-            Math.round(this.renderPos.y * stage.tileHeight) | 0,
+            Math.round((this.renderPos.x + shiftx) * stage.tileWidth) | 0,
+            Math.round((this.renderPos.y + shifty) * stage.tileHeight) | 0,
             this.flip);
     }
 }

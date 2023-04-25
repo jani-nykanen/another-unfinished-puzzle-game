@@ -1,4 +1,5 @@
 import { CoreEvent } from "../core/event.js";
+import { negMod } from "../math/utility.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Direction } from "./direction.js";
@@ -43,8 +44,10 @@ export abstract class GameObject {
             return;
 
         this.moveTimer -= moveSpeed * event.step;
-
         if (this.moveTimer <= 0.0) {
+
+            this.target.x = negMod(this.target.x, stage.getWidth());
+            this.target.y = negMod(this.target.y, stage.getHeight());
 
             stage.updateObjectLayerTile(this.target.x, this.target.y, this);
 
@@ -194,7 +197,8 @@ export abstract class GameObject {
         if (!this.moving)
             return;
 
-        if (stage.getObjectInTile(this.target.x, this.target.y)) {
+        let o = stage.getObjectInTile(this.target.x, this.target.y);
+        if (o != undefined && o != this) {
 
             this.moving = false;
             this.moveTimer = 0.0;
@@ -221,10 +225,14 @@ export abstract class GameObject {
     }
 
 
+    public getPosition = () : Vector2 => this.pos.clone();
+    public getRenderPosition = () : Vector2 => this.renderPos.clone();
+
+
     public getType = () : ObjectType => this.type;
     public doesExist = () : boolean => this.exist;
     public isMoving = () : boolean => this.moving;
 
 
-    abstract draw(canvas : Canvas, stage : Stage) : void;
+    abstract draw(canvas : Canvas, stage : Stage, shiftx? : number, shifty? : number) : void;
 }

@@ -116,9 +116,10 @@ export class Game implements Scene {
             .use();
 
         this.stage.centerCamera(canvas);
-
-        this.drawFrame(canvas);
         this.stage.draw(canvas);
+
+        canvas.setViewport();
+        this.drawFrame(canvas);
 
         canvas.transform
             .loadIdentity()

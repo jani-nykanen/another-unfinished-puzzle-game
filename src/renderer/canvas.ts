@@ -83,6 +83,8 @@ export class Canvas {
         this.translation = new Vector2();
 
         this.createOuterCircleMesh(120);
+
+        this.renderer.toggleScissorTest(true);
     }
 
 
@@ -374,7 +376,7 @@ export class Canvas {
             return;
         }
 
-        this.renderer.setViewport(this.framebuffer.width, this.framebuffer.height);
+        this.renderer.setViewport(0, 0, this.framebuffer.width, this.framebuffer.height);
         this.framebuffer.drawTo(_ => cb(this));
         this.renderer.setViewport();
     }
@@ -384,6 +386,8 @@ export class Canvas {
 
         if (this.framebuffer == null)
             return;
+
+        this.renderer.toggleScissorTest(false);
 
         this.renderer.clear(0.0);
         this.renderer.transform
@@ -408,6 +412,8 @@ export class Canvas {
 
         this.setColor();
         this.drawScaledBitmap(this.framebuffer, x, y, w, h);
+
+        this.renderer.toggleScissorTest(true);
     }
 
 
@@ -418,4 +424,11 @@ export class Canvas {
 
         return this.getBitmapFunction(name);
     }
+
+
+    public setViewport(x = 0, y = 0, w = this.width, h = this.height) : void {
+
+        this.renderer.setScissorBox(x, y, w, h);
+    }
+
 }

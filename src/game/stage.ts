@@ -11,6 +11,7 @@ import { ObjectType } from "./objecttype.js";
 import { Direction } from "./direction.js";
 import { Inventory } from "./inventory.js";
 import { negMod } from "../math/utility.js";
+import { Vector2 } from "../vector/vector.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -272,9 +273,29 @@ export class Stage {
 
     private drawObjectLayer(canvas : Canvas) : void {
 
+        let rpos : Vector2;
+
         for (let o of this.objectPool) {
 
             o.draw(canvas, this);
+
+            rpos = o.getRenderPosition();
+            if (rpos.y < 0) {
+
+                o.draw(canvas, this, 0, this.height);
+            }
+            else if (rpos.y >= this.height-1) {
+
+                o.draw(canvas, this, 0, -this.height);
+            }
+            else if (rpos.x < 0) {
+
+                o.draw(canvas, this, this.width, 0);
+            }
+            else if (rpos.x >= this.width-1) {
+
+                o.draw(canvas, this, -this.width, 0);
+            }
         }
     }
 
@@ -575,12 +596,14 @@ export class Stage {
 
     public centerCamera(canvas : Canvas) : void {
 
-        let dx = this.width * this.tileWidth / 2;
-        let dy = this.height * this.tileHeight / 2;
+        let dx = canvas.width/2 - this.width * this.tileWidth / 2;
+        let dy = canvas.height/2 - this.height * this.tileHeight / 2;
 
         canvas.transform
-            .translate(canvas.width/2 - dx, canvas.height/2 - dy)
+            .translate(dx, dy)
             .use();
+
+        canvas.setViewport(dx, dy, this.width * this.tileWidth, this.height * this.tileHeight);
     }
 
 

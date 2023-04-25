@@ -310,8 +310,29 @@ export class RenderContext {
     }
 
 
-    public setViewport(width : number = this.width, height : number = this.height) : void {
+    public setViewport(x = 0, y = 0, 
+        width : number = this.width, height : number = this.height) : void {
 
-        this.glCtx.viewport(0, 0, width, height);
+        this.glCtx.viewport(x, y, width, height);
+    }
+
+
+    public toggleScissorTest(state = false) : void {
+
+        let gl = this.glCtx;
+
+        if (state)
+            gl.enable(gl.SCISSOR_TEST);
+        else
+            gl.disable(gl.SCISSOR_TEST);
+    }
+
+
+    public setScissorBox(x = 0, y = 0, 
+        width : number = this.width, height : number = this.height) : void {
+
+        let gl = this.glCtx;
+
+        gl.scissor(x, y, width, height);
     }
 }
