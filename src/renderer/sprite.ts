@@ -71,7 +71,7 @@ export class Sprite {
 
     public draw(canvas : Canvas, bmp : Bitmap,
         spriteWidth : number, spriteHeight : number,
-        dx : number, dy : number, flip : Flip) : void {
+        dx : number, dy : number, flip : Flip = Flip.None) : void {
 
         canvas.drawBitmapRegion(bmp,
             this.column * spriteWidth, this.row * spriteHeight,

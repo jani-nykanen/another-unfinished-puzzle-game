@@ -82,6 +82,8 @@ export abstract class GameObject {
                     this.exist = false;
                     stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
                     stage.updateObjectLayerTile(this.target.x, this.target.y, undefined);
+
+                    stage.spawnAnimationEffect(0, this.target.x, this.target.y);
                 }
                 break;
 

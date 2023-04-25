@@ -12,6 +12,7 @@ import { Direction } from "./direction.js";
 import { Inventory } from "./inventory.js";
 import { negMod } from "../math/utility.js";
 import { Vector2 } from "../vector/vector.js";
+import { AnimationSpecialEffect } from "./animationeffect.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -83,6 +84,8 @@ export class Stage {
     private purpleWallState : boolean = true;
 
     private wasMoving : boolean = false;
+
+    private effects : Array<AnimationSpecialEffect>;
     
     public readonly tileWidth : number;
     public readonly tileHeight : number;
@@ -121,6 +124,8 @@ export class Stage {
         this.initUndoBuffers();
 
         this.tileAnimationTimer = 0.0;
+
+        this.effects = new Array<AnimationSpecialEffect> ();
 
         // TODO: Obtain these from the tilemap
         this.tileWidth = 16;
@@ -349,6 +354,11 @@ export class Stage {
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
 
+        for (let e of this.effects) {
+
+            e.update(event);
+        }
+
         let anythingMoving = false;
         let somethingMoved = false;
 
@@ -402,6 +412,7 @@ export class Stage {
 
         let bmpTileset = canvas.getBitmap("tileset1");
         let bmpWall = canvas.getBitmap("wall1");
+        let bmpEffects = canvas.getBitmap("effects");
 
         if (bmpWall != undefined) {
 
@@ -411,6 +422,14 @@ export class Stage {
         if (bmpTileset != undefined) {
 
             this.drawStaticTiles(canvas, bmpTileset);
+        }
+
+        if (bmpEffects != undefined) {
+
+            for (let e of this.effects) {
+
+                e.draw(canvas, bmpEffects, this.tileWidth, this.tileHeight);
+            }
         }
 
         this.drawObjectLayer(canvas);
@@ -592,6 +611,31 @@ export class Stage {
 
         this.activeStaticLayer[y*this.width + x] = value;
     }   
+
+
+    public spawnAnimationEffect(id : number, x : number, y : number) : void {
+
+        const ANIM_SPEED = 4;
+
+        let eff : AnimationSpecialEffect | null = null;
+
+        for (let e of this.effects) {
+
+            if (!e.doesExist()) {
+
+                eff = e;
+                break;
+            }
+        }
+
+        if (eff == null) {
+
+            eff = new AnimationSpecialEffect();
+            this.effects.push(eff);
+        }
+
+        eff.spawn(x, y, id, ANIM_SPEED);
+    }
 
 
     public centerCamera(canvas : Canvas) : void {

@@ -5,7 +5,6 @@ import { Direction, inverseDirection } from "./direction.js";
 import { GameObject } from "./gameobject.js";
 import { ObjectType } from "./objecttype.js";
 import { Stage } from "./stage.js";
-import { TileEffect } from "./tileeffect.js";
 
 
 export class Crate extends GameObject {
