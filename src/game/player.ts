@@ -6,7 +6,9 @@ import { Stage } from "./stage.js";
 import { Direction } from "./direction.js";
 import { ObjectType } from "./objecttype.js";
 import { Inventory } from "./inventory.js";
-import { TileEffect } from "./tileeffect";
+import { TileEffect } from "./tileeffect.js";
+import { AnimationSpecialEffect } from "./animationeffect.js";
+import { nextObject } from "./existingobject.js";
 
 
 const ANIMATION_ROW = [0, 2, 1, 2, 0];
@@ -20,18 +22,35 @@ export class Player extends GameObject {
 
     private inventory : Inventory;
 
+    private dust : Array<AnimationSpecialEffect>;
+
 
     constructor(x : number, y : number, inv : Inventory) {
 
         super(x, y, true);
 
         this.spr = new Sprite();
-
         this.dir = Direction.None;
-
         this.type = ObjectType.CanPushObject | ObjectType.CanCollectItems;
 
         this.inventory = inv;
+
+        this.dust = new Array<AnimationSpecialEffect> ();
+    }
+
+
+    private spawnDust(dir : Direction) : void {
+
+        const SHIFT_X = [-0.25, 0, 0.25, 0];
+        const SHIFT_Y = [0.125, 0.25, 0.125, -0.25];
+
+        const ANIM_SPEED = 6;
+
+        if (dir == Direction.None)
+            return;
+
+        let o = nextObject<AnimationSpecialEffect>(this.dust, AnimationSpecialEffect);
+        o.spawn(this.renderPos.x + SHIFT_X[dir-1], this.renderPos.y + SHIFT_Y[dir-1], 3, ANIM_SPEED);
     }
 
 
@@ -66,6 +85,8 @@ export class Player extends GameObject {
         if (dx != 0 || dy != 0) {
 
             if (stage.interactWithTiles(this.pos.x + dx, this.pos.y + dy)) {
+
+                this.flip = dir == Direction.Left ? Flip.Horizontal : Flip.None;
 
                 this.dir = dir;
                 return true;
@@ -107,6 +128,11 @@ export class Player extends GameObject {
 
     protected updateAnimation(event : CoreEvent) : void {
 
+        for (let d of this.dust) {
+
+            d.update(event);
+        }
+
         if (this.moving && this.dir == Direction.None)
             return;
 
@@ -125,9 +151,14 @@ export class Player extends GameObject {
         let frame = 0;
         let shift = Number((this.pos.x | 0) % 2 == (this.pos.y | 0) % 2);
 
+        let oldFrame = this.spr.getFrame();
         if (this.moving) {
 
             frame = shift*2 + Math.round(this.moveTimer);
+            if (frame != oldFrame) {
+
+                this.spawnDust(this.dir);
+            }
         }
         this.spr.setFrame(frame, row);
     }
@@ -161,6 +192,11 @@ export class Player extends GameObject {
         let bmp = canvas.getBitmap("player");
         if (bmp == undefined)
             return;
+
+        for (let d of this.dust) {
+
+            d.draw(canvas, bmp, stage.tileWidth, stage.tileHeight);
+        }
 
         this.spr.draw(canvas, bmp, stage.tileWidth, stage.tileHeight,
             Math.round((this.renderPos.x + shiftx) * stage.tileWidth) | 0,

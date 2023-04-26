@@ -13,6 +13,7 @@ import { Inventory } from "./inventory.js";
 import { negMod } from "../math/utility.js";
 import { Vector2 } from "../vector/vector.js";
 import { AnimationSpecialEffect } from "./animationeffect.js";
+import { nextObject } from "./existingobject.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -576,6 +577,8 @@ export class Stage {
             this.updateStaticLayerTile(x, y, 0);
             this.activeInventory.useKey();
 
+            this.spawnAnimationEffect(2, x, y);
+
             return true;
         }
 
@@ -623,23 +626,7 @@ export class Stage {
 
         const ANIM_SPEED = 4;
 
-        let eff : AnimationSpecialEffect | null = null;
-
-        for (let e of this.effects) {
-
-            if (!e.doesExist()) {
-
-                eff = e;
-                break;
-            }
-        }
-
-        if (eff == null) {
-
-            eff = new AnimationSpecialEffect();
-            this.effects.push(eff);
-        }
-
+        let eff = nextObject<AnimationSpecialEffect>(this.effects, AnimationSpecialEffect);
         eff.spawn(x, y, id, ANIM_SPEED);
     }
 

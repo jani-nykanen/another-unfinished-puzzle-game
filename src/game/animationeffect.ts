@@ -3,21 +3,22 @@ import { Vector2 } from "../vector/vector.js";
 import { CoreEvent } from "../core/event.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Bitmap } from "../renderer/bitmap.js";
-
+import { ExistingObject } from "./existingobject.js";
 
 
 // AnimationEffect was taken...
-export class AnimationSpecialEffect {
+export class AnimationSpecialEffect extends ExistingObject {
 
 
     private pos : Vector2;
 
     private spr : Sprite;
     private speed : number;
-    private exist : boolean = false;
 
 
     constructor() {
+
+        super();
 
         this.pos = new Vector2();
 
