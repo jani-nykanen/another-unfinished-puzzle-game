@@ -5,6 +5,7 @@ import { Direction, inverseDirection } from "./direction.js";
 import { GameObject } from "./gameobject.js";
 import { ObjectType } from "./objecttype.js";
 import { Stage } from "./stage.js";
+import { TileEffect } from "./tileeffect.js";
 
 
 export class Crate extends GameObject {
@@ -46,6 +47,20 @@ export class Crate extends GameObject {
             return false;
 
         return this.moveTo(dir, stage);
+    }
+
+
+    protected tileEffectEvent(stage : Stage, eff : TileEffect) : boolean { 
+        
+        if (eff == TileEffect.InsideFlame) {
+
+            this.exist = false;
+            stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
+            stage.updateObjectLayerTile(this.target.x, this.target.y, undefined);
+
+            stage.spawnAnimationEffect(0, this.target.x, this.target.y);
+        }
+        return false; 
     }
 
 

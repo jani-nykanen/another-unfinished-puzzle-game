@@ -354,25 +354,29 @@ export class Stage {
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
 
+        let anythingActive = false;
+        let somethingMoved = false;
+
         for (let e of this.effects) {
 
             e.update(event);
-        }
+            if (e.doesExist()) {
 
-        let anythingMoving = false;
-        let somethingMoved = false;
+                anythingActive = true;
+            }
+        }
 
         for (let o of this.objectPool) {
 
             if (o.isMoving()) {
 
                 this.wasMoving = true;
-                anythingMoving = true;
+                anythingActive = true;
                 break;
             }
         }
 
-        if (this.wasMoving && !anythingMoving) {
+        if (this.wasMoving && !anythingActive) {
 
             this.checkWallButtons();
 
@@ -385,7 +389,7 @@ export class Stage {
             somethingMoved = false;
             for (let o of this.objectPool) {
 
-                if (o.update(TURN_TIMER, this, event, !anythingMoving)) {
+                if (o.update(TURN_TIMER, this, event, !anythingActive)) {
 
                     somethingMoved = true;
                 }
@@ -559,6 +563,8 @@ export class Stage {
 
             this.updateStaticLayerTile(x, y, 11);
             this.activeInventory.useTorch();
+
+            this.spawnAnimationEffect(1, x, y);
 
             return true;
         }

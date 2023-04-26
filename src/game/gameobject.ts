@@ -66,57 +66,21 @@ export abstract class GameObject {
 
     protected abstract checkMovement(stage : Stage, event : CoreEvent) : boolean
     protected updateAnimation(event : CoreEvent) : void {};
-    protected tileEffectEvent(stage : Stage, eff : TileEffect) : void {}
+    protected tileEffectEvent(stage : Stage, eff : TileEffect) : boolean { return false; }
 
 
     protected handleTileEffect(stage : Stage, eff : TileEffect) : boolean {
 
-        switch (eff) {
+        if (eff >= TileEffect.MoveRight && eff <= TileEffect.MoveDown) {
 
-            case TileEffect.InsideFlame:
+            if (this.moveTo(tileEffectToDirection(eff), stage)) {
 
-                if ((this.type & ObjectType.DestroyFlames) != 0) {
-
-                    this.tileEffectEvent(stage, eff);
-
-                    this.exist = false;
-                    stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
-                    stage.updateObjectLayerTile(this.target.x, this.target.y, undefined);
-
-                    stage.spawnAnimationEffect(0, this.target.x, this.target.y);
-                }
-                break;
-
-            // Arrows
-            case TileEffect.MoveDown:
-            case TileEffect.MoveLeft:
-            case TileEffect.MoveRight:
-            case TileEffect.MoveUp:
-
-                if (this.moveTo(tileEffectToDirection(eff), stage)) {
-
-                    this.automatedMovement = true;
-                    return true;
-                }
-                return false;
-
-            // Collectibles:
-            case TileEffect.Key:
-            case TileEffect.Torch:
-
-                if ((this.type & ObjectType.CanCollectItems) != 0) {
-
-                    this.tileEffectEvent(stage, eff);
-
-                    stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
-                }
-                break;
-    
-            default:
-                break;
+                this.automatedMovement = true;
+                return true;
+            }
+            return false;
         }
-
-        return false;
+        return this.tileEffectEvent(stage, eff);
     }
 
 

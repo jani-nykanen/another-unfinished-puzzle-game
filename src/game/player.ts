@@ -133,23 +133,26 @@ export class Player extends GameObject {
     }
 
 
-    protected tileEffectEvent(stage : Stage, eff : TileEffect) : void {
+    protected tileEffectEvent(stage : Stage, eff : TileEffect) : boolean {
 
         switch (eff) {
 
         case TileEffect.Key:
 
             this.inventory.addKey();
+            stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
             break;
 
         case TileEffect.Torch:
 
             this.inventory.addTorch();
+            stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
             break;
 
         default:
             break;
         }
+        return false;
     }
 
 
