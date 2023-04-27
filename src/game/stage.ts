@@ -678,6 +678,8 @@ export class Stage {
 
     public reset() : void {
 
+        this.copyStateToBuffer();
+
         let i : number;
         for (let y = 0; y < this.height; ++ y) {
 
@@ -695,7 +697,7 @@ export class Stage {
                 }
             }
         }
-        this.copyStateToBuffer();
+        
     }
 
 
