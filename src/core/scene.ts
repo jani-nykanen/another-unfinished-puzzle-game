@@ -10,7 +10,6 @@ export interface Scene {
 
     init(param : SceneParam, event : CoreEvent) : void;
     update(event : CoreEvent) : void;
-    updatePhysics(event : CoreEvent) : void;
     redraw(canvas : Canvas, interpolationStep? : number) : void;
 }
 

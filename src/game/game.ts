@@ -3,12 +3,15 @@ import { Scene, SceneParam } from "../core/scene.js";
 import { InputState } from "../input/inputstate.js";
 import { Canvas, TextAlign } from "../renderer/canvas.js";
 import { Stage } from "./stage.js";
+import { Menu } from "./menu.js";
+import { MenuButton } from "./menubutton.js";
 
 
 export class Game implements Scene {
 
 
     private stage : Stage;
+    private pauseMenu : Menu;
 
 
     private drawFrame(canvas : Canvas) : void {
@@ -82,14 +85,67 @@ export class Game implements Scene {
     }
 
 
+    private createPauseMenu() : void {
+
+        this.pauseMenu = new Menu(
+        [
+        // Resume
+        new MenuButton("Resume", (event : CoreEvent) => {
+
+            this.pauseMenu.deactivate();
+        }),
+
+        // Undo
+        new MenuButton("Undo move", (event : CoreEvent) => {
+
+            this.stage.undo();
+            this.pauseMenu.deactivate();
+        }),
+
+        // Restart
+        new MenuButton("Restart", (event : CoreEvent) => {
+
+            this.stage.reset();
+            this.pauseMenu.deactivate();
+        }),
+
+        // Settings
+        new MenuButton("Settings", (event : CoreEvent) => {
+
+            // ...
+        }),
+
+        // Main menu
+        new MenuButton("Main menu", (event : CoreEvent) => {
+
+            // ...
+        })
+        ],
+        false);
+    }
+
+
     public init(param: SceneParam, event: CoreEvent): void {
         
         this.stage = new Stage(event);
+        this.createPauseMenu();
     }
 
 
     public update(event: CoreEvent): void {
         
+        if (this.pauseMenu.isActive()) {
+
+            this.pauseMenu.update(event);
+            return;
+        }
+
+        if (event.input.getAction("pause") == InputState.Pressed) {
+
+            this.pauseMenu.activate(0);
+            return;
+        }
+
         if (event.input.getAction("undo") == InputState.Pressed) {
 
             this.stage.undo();
@@ -98,16 +154,15 @@ export class Game implements Scene {
 
             this.stage.reset();
         }
+
+        this.stage.update(event);
     }
 
-
-    public updatePhysics(event: CoreEvent): void {
-
-        this.stage.updatePhysics(event);
-    }
 
 
     public redraw(canvas: Canvas, interpolationStep : number): void {
+
+        const PAUSE_DARKEN_ALPHA = 0.33;
 
         canvas.clear(0.0, 0.33, 0.67);
         canvas.transform
@@ -125,6 +180,14 @@ export class Game implements Scene {
             .loadIdentity()
             .use();
         this.drawHUD(canvas);
+
+        if (this.pauseMenu.isActive()) {
+
+            canvas.setColor(0, 0, 0, PAUSE_DARKEN_ALPHA);
+            canvas.fillRect();
+
+            this.pauseMenu.draw(canvas);
+        }
     }
 
 }

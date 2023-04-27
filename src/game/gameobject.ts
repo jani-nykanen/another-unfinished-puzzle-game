@@ -3,13 +3,14 @@ import { negMod } from "../math/utility.js";
 import { Canvas } from "../renderer/canvas.js";
 import { Vector2 } from "../vector/vector.js";
 import { Direction } from "./direction.js";
+import { ExistingObject } from "./existingobject.js";
 import { ObjectType } from "./objecttype.js";
 import { Stage } from "./stage.js";
 import { TileEffect, tileEffectToDirection } from "./tileeffect.js";
 
 
 
-export abstract class GameObject {
+export abstract class GameObject extends ExistingObject {
 
 
     protected type : ObjectType = 0;
@@ -17,8 +18,6 @@ export abstract class GameObject {
     protected pos : Vector2;
     protected renderPos : Vector2;
     protected target : Vector2;
-
-    protected exist : boolean;
 
     protected moving : boolean = false;
     protected moveTimer : number = 0.0;
@@ -28,6 +27,8 @@ export abstract class GameObject {
 
 
     constructor(x : number, y : number, exist = true) {
+
+        super();
 
         this.pos = new Vector2(x, y);
         this.target = this.pos.clone();

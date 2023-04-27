@@ -5,7 +5,7 @@ import { GamePad } from "./gamepad.js";
 import { Vector2 } from "../vector/vector.js";
 
 
-const INPUT_DIRECTION_DEADZONE = 0.25;
+const INPUT_DIRECTION_DEADZONE = 0.1;
 
 
 // Heh, "class action"
@@ -102,8 +102,8 @@ export class InputManager {
         }
 
         this.stickDelta = new Vector2(
-            this.stick.x - this.oldStick.x,
-            this.stick.y - this.oldStick.y);
+            this.virtualStick.x - this.oldStick.x,
+            this.virtualStick.y - this.oldStick.y);
     }
 
 

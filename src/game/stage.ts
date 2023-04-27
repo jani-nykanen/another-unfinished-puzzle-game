@@ -348,12 +348,12 @@ export class Stage {
     }
 
 
-    public updatePhysics(event : CoreEvent) : void {
+    public update(event : CoreEvent) : void {
 
-        const ANIMATION_SPEED = 1.0/600.0;
+        const ANIMATION_SPEED = 1.0/30.0;
         const TURN_TIMER = 1.0/15.0;
 
-        this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.delta) % 1.0;
+        this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.step) % 1.0;
 
         let anythingActive = false;
         let somethingMoved = false;
@@ -396,7 +396,6 @@ export class Stage {
                 }
             }
         } while(somethingMoved);
-
 
         // Needed because of the "arrows"
         for (let o of this.objectPool) {
@@ -672,6 +671,19 @@ export class Stage {
 
         -- this.undoCount;
 
+        // This is needed if the player resets the stage, then
+        // undoes the move
+        for (let o of this.objectPool) {
+
+            o?.kill();
+        }
+        for (let o of this.activeObjectLayer) {
+
+            if (o != undefined) {
+                
+                o.makeExist();
+            }
+        }
         return true;
     }
 

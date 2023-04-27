@@ -54,29 +54,33 @@ export class Player extends GameObject {
     }
 
 
-    private checkTileInteraction(stage : Stage, event : CoreEvent) : boolean {
+    private checkTileInteraction(stickDir : Direction, stage : Stage, event : CoreEvent) : boolean {
 
         let dx = 0;
         let dy = 0;
 
         let dir = this.dir;
 
-        if (event.input.upPress()) {
+        if (event.input.upPress() || 
+            (stickDir == Direction.Up && stickDir != this.dir)) {
 
             dy = -1;
             dir = Direction.Up;
         }
-        else if (event.input.downPress()) {
+        else if (event.input.downPress() ||
+            (stickDir == Direction.Down && stickDir != this.dir)) {
 
             dy = 1;
             dir = Direction.Down;
         }
-        else if (event.input.leftPress()) {
+        else if (event.input.leftPress() ||
+            (stickDir == Direction.Left && stickDir != this.dir)) {
 
             dx = -1;
             dir = Direction.Left;
         }
-        else if (event.input.rightPress()) {
+        else if (event.input.rightPress() ||
+            (stickDir == Direction.Right && stickDir != this.dir)) {
 
             dx = 1;
             dir = Direction.Right;
@@ -100,12 +104,6 @@ export class Player extends GameObject {
 
         const EPS = 0.25;
 
-        if (this.checkTileInteraction(stage, event)) {
-
-            this.spr.setFrame(4, ANIMATION_ROW[this.dir]);
-            return this.moveTo(Direction.None, stage);
-        }
-
         let dir = Direction.None;
         let stick = event.input.stick;
 
@@ -121,6 +119,12 @@ export class Player extends GameObject {
         else {
 
             dir = stick.y < 0 ? Direction.Up : Direction.Down;
+        }
+
+        if (this.checkTileInteraction(dir, stage, event)) {
+
+            this.spr.setFrame(4, ANIMATION_ROW[this.dir]);
+            return this.moveTo(Direction.None, stage);
         }
         return this.moveTo(dir, stage);
     }

@@ -22,9 +22,7 @@ export class CoreEvent {
     private readonly canvas : Canvas;
     private readonly core : Core;
 
-    protected deltaStep : number = 1.0;
-    protected physicsStep : number = 1.0;
-    protected interpolationStep : number = 1.0;
+    protected timeStep : number = 1.0;
 
 
     constructor(input : InputManager, audio : AudioPlayer, canvas : Canvas, 
@@ -53,21 +51,9 @@ export class CoreEvent {
     }
 
 
-    public get delta() : number {
-
-        return this.deltaStep;
-    }
-
-
     public get step() : number {
 
-        return this.physicsStep;
-    }
-
-
-    public get interpolation() : number {
-
-        return this.interpolationStep;
+        return this.timeStep;
     }
 
 

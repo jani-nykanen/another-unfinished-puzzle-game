@@ -11,21 +11,9 @@ import { RenderContext } from "../renderer/rendercontext.js";
 class GeneralCoreEvent extends CoreEvent {
 
 
-    public setDeltaStep(step : number) : void {
+    public setTimeStep(step : number) : void {
 
-        this.deltaStep = step;
-    }
-
-
-    public setPhysicsStep(step : number) : void {
-
-        this.physicsStep = step;
-    }
-
-
-    public setInterpolationStep(interpolationStep : number) : void {
-
-        this.interpolationStep = interpolationStep;
+        this.timeStep = step;
     }
 }
 
@@ -119,27 +107,16 @@ export class Core {
 
     private loop(ts : number, frameSkip = 0) : void {
 
-        const MAX_DELTA = 1000.0/10.0;
-
         const MAX_REFRESH_COUNT = 5;
         const FRAME_TIME = 16.66667 * (frameSkip + 1);
 
         let delta = ts - this.oldTime;
-        // TODO: The following might be redundant
-        if (delta > MAX_DELTA) {
 
-            delta = MAX_DELTA;
-        }
-
-        this.event.setDeltaStep(delta);
-        this.event.setPhysicsStep(frameSkip+1);
-        this.event.setInterpolationStep
+        this.event.setTimeStep(frameSkip+1);
 
         this.timeSum += delta;
         this.timeSum = Math.min(MAX_REFRESH_COUNT * FRAME_TIME, this.timeSum);
         this.oldTime = ts;
-
-        this.input.updateStick();
 
         if (this.assets.hasLoaded() && !this.initialized) {
 
@@ -150,32 +127,24 @@ export class Core {
             this.initialized = true;
         }
 
-        // Update "physics" (i.e. fixed time step logic)
+
         let refreshCount = (this.timeSum / FRAME_TIME) | 0;
-
-        this.event.setInterpolationStep((this.timeSum - refreshCount * FRAME_TIME) / FRAME_TIME);
-
         while ((refreshCount --) > 0) {
+
+            this.input.updateStick();
 
             if (this.activeScene != undefined &&
                 this.assets.hasLoaded()) {
 
-                this.activeScene.updatePhysics(this.event);
+                this.activeScene.update(this.event);
             }
+
             this.transition.update(this.event, frameSkip + 1);
+            this.input.update();
 
             this.timeSum -= FRAME_TIME;
         }
-
-        // Update general logic (that is, anything that involves input)
-        if (this.activeScene != undefined &&
-            this.assets.hasLoaded()) {
-
-            this.activeScene.update(this.event);
-        }
-
-        this.input.update();
-
+        
         // Rendering
         this.renderer.resetVertexAndFragmentTransforms();
         this.canvas.drawToFramebuffer(

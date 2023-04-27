@@ -13,6 +13,9 @@ window.onload = () => (new Core(true, 256, 192, true))
         event.input
             .addAction("restart", ["KeyR"], [], [3])
             .addAction("undo", ["Backspace", "KeyZ"], [], [1])
+            .addAction("pause", ["Enter"], [], [7])
+            .addAction("start", ["Enter"], [], [7])
+            .addAction("select", ["Space"], [], [0]);
                 
         event.audio.setGlobalVolume(0.50);
     });
