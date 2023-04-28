@@ -12,6 +12,7 @@ export const enum TileEffect {
     InsideFlame = 5,
     Key = 6,
     Torch = 7,
+    Stairway = 8,
 }
 
 

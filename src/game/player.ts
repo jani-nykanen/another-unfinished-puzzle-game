@@ -193,6 +193,11 @@ export class Player extends GameObject {
             stage.updateStaticLayerTile(this.target.x, this.target.y, 0);
             break;
 
+        case TileEffect.Stairway:
+
+            stage.markCleared();
+            break;
+
         default:
             break;
         }

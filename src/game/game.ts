@@ -5,6 +5,11 @@ import { Canvas, TextAlign } from "../renderer/canvas.js";
 import { Stage } from "./stage.js";
 import { Menu } from "./menu.js";
 import { MenuButton } from "./menubutton.js";
+import { TransitionType } from "../core/transition.js";
+
+
+const INITIAL_CLEAR_TIME = 40;
+const CLEAR_TIME_WAIT = 80;
 
 
 export class Game implements Scene {
@@ -12,6 +17,9 @@ export class Game implements Scene {
 
     private stage : Stage;
     private pauseMenu : Menu;
+
+    private stageIndex : number = 1;
+    private stageClearTimer : number;
 
 
     private drawFrame(canvas : Canvas) : void {
@@ -73,7 +81,7 @@ export class Game implements Scene {
 
         canvas.drawText(
             canvas.getBitmap("font"), 
-            "Floor 1", canvas.width/2, 8, 
+            "Floor " + String(this.stageIndex), canvas.width/2, 8, 
             0, 0, TextAlign.Center);
 
         canvas.drawText(
@@ -125,6 +133,66 @@ export class Game implements Scene {
     }
 
 
+    private updateStageClearTimer(event : CoreEvent) : void {
+
+        this.stageClearTimer += event.step;
+        if (this.stageClearTimer >= INITIAL_CLEAR_TIME + CLEAR_TIME_WAIT) {
+
+            event.transition.activate(true,
+                TransitionType.Fade, 1.0/30.0,
+                (event : CoreEvent) => {
+
+                    ++ this.stageIndex;
+                    this.stage.nextStage(this.stageIndex, event);
+                }); 
+        }
+    }
+
+
+    private drawStageClear(canvas : Canvas) : void {
+
+        const DARKEN_ALPHA = 0.33;
+        const MAX_OFFSET = 4;
+        const AMPLITUDE = 48;
+
+        canvas.setColor(0, 0, 0, DARKEN_ALPHA);
+        canvas.fillRect();
+        canvas.setColor();
+
+        let bmp = canvas.getBitmap("stageClear");
+        if (bmp == undefined)
+            return;
+
+        let dx = this.stage.tileWidth*this.stage.getWidth()/2.0 - bmp.width/2;
+        let dy = this.stage.tileHeight*this.stage.getHeight()/2.0 - bmp.height/2;
+
+        let xoff : number;
+        let yoff : number;
+
+        let t : number;
+        let offset : number;
+        if (this.stageClearTimer < INITIAL_CLEAR_TIME) {
+
+            t = 1.0 - this.stageClearTimer / INITIAL_CLEAR_TIME;
+            offset = 1 + MAX_OFFSET * t;
+
+            for (let y = 0; y < bmp.height; ++ y) {
+
+                xoff = Math.round(Math.sin((Math.PI * 4) / bmp.height * y + t * Math.PI*2) * AMPLITUDE * t);
+                yoff = Math.round((y - bmp.height/2) * offset);
+                
+                canvas.drawBitmapRegion(bmp,
+                    0, y, bmp.width, 1,
+                    dx + xoff, dy + yoff + bmp.height/2);
+            }
+        }
+        else {
+
+            canvas.drawBitmap(bmp, dx, dy);
+        }
+    }
+
+
     public init(param: SceneParam, event: CoreEvent): void {
         
         this.stage = new Stage(event);
@@ -134,28 +202,43 @@ export class Game implements Scene {
 
     public update(event: CoreEvent): void {
         
+        if (event.transition.isActive())
+            return;
+
         if (this.pauseMenu.isActive()) {
 
             this.pauseMenu.update(event);
             return;
         }
 
-        if (event.input.getAction("pause") == InputState.Pressed) {
+        if (this.stage.isCleared()) {
 
-            this.pauseMenu.activate(0);
-            return;
+            this.updateStageClearTimer(event);
+        }
+        else {
+
+            if (event.input.getAction("pause") == InputState.Pressed) {
+
+                this.pauseMenu.activate(0);
+                return;
+            }
+
+            if (event.input.getAction("undo") == InputState.Pressed) {
+
+                this.stage.undo();
+            }
+            else if (event.input.getAction("restart") == InputState.Pressed) {
+
+                this.stage.reset();
+            }
         }
 
-        if (event.input.getAction("undo") == InputState.Pressed) {
-
-            this.stage.undo();
-        }
-        else if (event.input.getAction("restart") == InputState.Pressed) {
-
-            this.stage.reset();
-        }
-
+        let wasCleared = this.stage.isCleared();
         this.stage.update(event);
+        if (!wasCleared && this.stage.isCleared()) {
+
+            this.stageClearTimer = 0.0;
+        }
     }
 
 
@@ -172,6 +255,11 @@ export class Game implements Scene {
 
         this.stage.centerCamera(canvas);
         this.stage.draw(canvas);
+
+        if (this.stage.isCleared()) {
+
+            this.drawStageClear(canvas);
+        }
 
         canvas.setViewport();
         this.drawFrame(canvas);

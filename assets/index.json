@@ -6,12 +6,14 @@
         {"name": "effects", "path": "effects.png"},
         {"name": "tileset1", "path": "tileset1.png"},
         {"name": "wall1", "path": "wall1.png"},
+        {"name": "stageClear", "path": "stage_clear.png"},
         {"name": "player", "path": "player.png"}
     ],
 
     "tilemapPath": "assets/tilemaps/",
     "tilemaps": [
-        {"name": "1", "path": "1.tmx"}
+        {"name": "1", "path": "1.tmx"},
+        {"name": "2", "path": "2.tmx"}
     ]
 }
 

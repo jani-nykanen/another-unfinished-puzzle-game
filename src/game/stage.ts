@@ -83,11 +83,12 @@ export class Stage {
     private tileAnimationTimer : number;
 
     private purpleWallState : boolean = true;
-
     private wasMoving : boolean = false;
+    private cleared : boolean = false;
 
     private effects : Array<AnimationSpecialEffect>;
     
+
     public readonly tileWidth : number;
     public readonly tileHeight : number;
 
@@ -134,11 +135,15 @@ export class Stage {
     }
 
 
-    private initUndoBuffers() : void {
+    private initUndoBuffers(createInventory = true) : void {
         
         this.objectLayerBuffer = new Array<Array<GameObject | undefined>> (UNDO_BUFFER_SIZE);
         this.staticLayerBuffer = new Array<number[]> (UNDO_BUFFER_SIZE);
-        this.inventoryBuffer   = new Array<Inventory> (UNDO_BUFFER_SIZE);
+
+        if (createInventory) {
+
+            this.inventoryBuffer   = new Array<Inventory> (UNDO_BUFFER_SIZE);
+        }
 
         this.staticLayerBuffer[0] = Array.from(this.activeStaticLayer);
         this.objectLayerBuffer[0] = Array.from(this.activeObjectLayer);
@@ -148,7 +153,15 @@ export class Stage {
 
             this.staticLayerBuffer[i] = (new Array<number> (this.width*this.height)).fill(0);
             this.objectLayerBuffer[i] = (new Array<GameObject | undefined> (this.width*this.height)).fill(undefined);
-            this.inventoryBuffer[i]   = new Inventory();
+
+            if (createInventory) {
+
+                this.inventoryBuffer[i]   = new Inventory();
+            }
+            else {
+
+                this.inventoryBuffer[i].clear();
+            }
         }
     }
 
@@ -355,7 +368,7 @@ export class Stage {
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.step) % 1.0;
 
-        let anythingActive = false;
+        let anythingActive = this.cleared;
         let somethingMoved = false;
 
         for (let e of this.effects) {
@@ -501,6 +514,12 @@ export class Stage {
             return false;
         }
 
+        // Stairway
+        if ((type & ObjectType.CanFinishStage) == 0 && tileID == 4) {
+
+            return true;
+        }
+
         // "Arrows"
         /*
         if (tileID >= 17 && tileID <= 20 &&
@@ -515,7 +534,8 @@ export class Stage {
 
     public checkUnderlyingTile(x : number, y : number) : TileEffect {
 
-        // TODO: Lookup table for everything
+        // TODO: Lookup table for all the cases,
+        // or at least switch for the rest
 
         const ARROW_DIR = [
             TileEffect.MoveRight, 
@@ -547,6 +567,12 @@ export class Stage {
         if (tileID == 13) {
 
             return TileEffect.Torch;
+        }
+
+        // Stairway
+        if (tileID == 4) {
+
+            return TileEffect.Stairway;
         }
 
         return TileEffect.None;
@@ -730,6 +756,58 @@ export class Stage {
     }   
 
 
+    public markCleared() : void {
+
+        this.cleared = true;
+    }
+
+
+    public nextStage(index : number, event : CoreEvent) : void {
+
+        let baseMap = event.assets.getTilemap(String(index));
+        if (baseMap == undefined) {
+
+            throw "Missing tilemap!";
+        }
+
+        this.baseMap = baseMap;
+        this.width = baseMap.width;
+        this.height = baseMap.height;
+
+        this.objectPool = new Array<GameObject> ();
+        this.activeObjectLayer = (new Array<GameObject> (this.width*this.height)).fill(undefined);
+
+        this.activeStaticLayer = baseMap.cloneLayer("base");
+        if (this.activeStaticLayer == undefined) {
+
+            throw "Base layer missing!";
+        }
+
+        this.wallMap = new WallMap(this.activeStaticLayer, this.width, this.height);
+        
+        this.activeInventory = new Inventory();
+
+        this.parseObjects();
+
+        this.initialStaticLayer = Array.from(this.activeStaticLayer);
+        this.initialObjectLayer = Array.from(this.activeObjectLayer);
+
+        this.initUndoBuffers(false);
+
+        for (let e of this.effects) {
+
+            e.kill();
+        }
+
+        this.tileAnimationTimer = 0.0;
+        this.cleared = false;
+        this.purpleWallState = true;
+        this.wasMoving = false;
+        this.cleared  = false;
+    }
+
+
     public getWidth = () : number => this.width;
     public getHeight = () : number => this.height;
+    public isCleared = () : boolean => this.cleared;
 }
