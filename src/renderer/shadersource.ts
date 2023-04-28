@@ -113,5 +113,35 @@ export const FragmentSource = {
     
         gl_FragColor = color * vcolor;
     }`,
+
+
+    TexturedRGB222 : 
+    
+    `
+    precision mediump float;
+         
+    uniform sampler2D texSampler;
+    
+    uniform vec4 color;
+    
+    uniform vec2 texPos;
+    uniform vec2 texScale;
+    
+    varying vec2 uv;
+    
+    
+    void main() {
+    
+        vec2 tex = uv * texScale + texPos;    
+        vec4 res = texture2D(texSampler, tex) * color;
+    
+        if (res.a < 1.0/255.0) {
+             discard;
+        }
+
+        res.xyz = floor(res.xyz*3.0)/3.0;
+
+        gl_FragColor = res;
+    }`,
     
 };

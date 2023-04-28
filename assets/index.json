@@ -7,6 +7,7 @@
         {"name": "tileset1", "path": "tileset1.png"},
         {"name": "wall1", "path": "wall1.png"},
         {"name": "stageClear", "path": "stage_clear.png"},
+        {"name": "cogs", "path": "cogs.png"},
         {"name": "player", "path": "player.png"}
     ],
 

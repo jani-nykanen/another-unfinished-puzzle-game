@@ -81,6 +81,7 @@ export class Stage {
     private height : number;
 
     private tileAnimationTimer : number;
+    private specialMoveTimer : number;
 
     private purpleWallState : boolean = true;
     private wasMoving : boolean = false;
@@ -93,9 +94,9 @@ export class Stage {
     public readonly tileHeight : number;
 
 
-    constructor(event : CoreEvent) {
+    constructor(initialStage : number, event : CoreEvent) {
 
-        let baseMap = event.assets.getTilemap("1");
+        let baseMap = event.assets.getTilemap(String(initialStage));
         if (baseMap == undefined) {
 
             throw "Missing tilemap!";
@@ -126,6 +127,7 @@ export class Stage {
         this.initUndoBuffers();
 
         this.tileAnimationTimer = 0.0;
+        this.specialMoveTimer = 0.0;
 
         this.effects = new Array<AnimationSpecialEffect> ();
 
@@ -390,6 +392,15 @@ export class Stage {
             }
         }
 
+        if (anythingActive) {
+
+            this.specialMoveTimer = (this.specialMoveTimer + TURN_TIMER * event.step) % 1.0;
+        }
+        else {
+
+            this.specialMoveTimer = 0.0;
+        }
+
         if (this.wasMoving && !anythingActive) {
 
             this.checkWallButtons();
@@ -491,6 +502,9 @@ export class Stage {
         const ITEMS = [10, 13];
         // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
 
+        x = negMod(x, this.width);
+        y = negMod(y, this.height);
+
         // TODO: Merge all the conditions under one
         // "return this or that or etc"
 
@@ -581,6 +595,9 @@ export class Stage {
 
     public interactWithTiles(x : number, y : number) : boolean {
 
+        x = negMod(x, this.width);
+        y = negMod(y, this.height);
+
         let tileID = this.getStaticTile(x, y);
 
         // Bush
@@ -613,8 +630,8 @@ export class Stage {
 
     public getObjectInTile(x : number, y : number) : GameObject | undefined {
 
-        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
-            return undefined;
+        x = negMod(x, this.width);
+        y = negMod(y, this.height);
 
         return this.activeObjectLayer[y*this.width + x];
     }
@@ -631,8 +648,8 @@ export class Stage {
 
     public updateObjectLayerTile(x : number, y : number, o : GameObject | undefined) : void {
 
-        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
-            return;
+        x = negMod(x, this.width);
+        y = negMod(y, this.height);
 
         this.activeObjectLayer[y*this.width + x] = o;
     }   
@@ -640,8 +657,8 @@ export class Stage {
 
     public updateStaticLayerTile(x : number, y : number, value : number) : void {
 
-        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
-            return;
+        x = negMod(x, this.width);
+        y = negMod(y, this.height);
 
         this.activeStaticLayer[y*this.width + x] = value;
     }   
@@ -810,4 +827,5 @@ export class Stage {
     public getWidth = () : number => this.width;
     public getHeight = () : number => this.height;
     public isCleared = () : boolean => this.cleared;
+    public getSpecialMoveTimer = () : number => this.specialMoveTimer;
 }

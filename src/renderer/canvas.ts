@@ -387,6 +387,8 @@ export class Canvas {
         if (this.framebuffer == null)
             return;
 
+        this.renderer.changeShader("rgb222");
+
         this.renderer.toggleScissorTest(false);
 
         this.renderer.clear(0.0);
@@ -411,9 +413,16 @@ export class Canvas {
         let y = this.renderer.height/2 - h/2;
 
         this.setColor();
-        this.drawScaledBitmap(this.framebuffer, x, y, w, h);
+
+        this.renderer.setVertexTransform(x, y, w, h);
+        this.renderer.setFragmentTransform(0, 0, 1, 1);
+
+        this.renderer.bindTexture(this.framebuffer);
+        this.renderer.drawMesh();
 
         this.renderer.toggleScissorTest(true);
+
+        this.renderer.changeShader("textured");
     }
 
 

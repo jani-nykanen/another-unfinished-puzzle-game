@@ -83,6 +83,8 @@ export class RenderContext {
             VertexSource.NoTexture, FragmentSource.NoTexture); 
         this.shaders["fixedcolor"] = new Shader(this.glCtx, 
             VertexSource.Textured, FragmentSource.TexturedFixedColor);    
+        this.shaders["rgb222"] = new Shader(this.glCtx, 
+            VertexSource.Textured, FragmentSource.TexturedRGB222);    
 
         this.activeShader = this.shaders["textured"];
         this.activeShader.use();

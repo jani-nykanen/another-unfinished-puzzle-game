@@ -79,17 +79,67 @@ export class Game implements Scene {
 
     private drawHUD(canvas : Canvas) : void {
 
-        canvas.drawText(
-            canvas.getBitmap("font"), 
+        const COG_HEIGHT = 4.0;
+
+        let font = canvas.getBitmap("font");
+        let cogs = canvas.getBitmap("cogs");
+        if (font == undefined || cogs == undefined)
+            return
+
+        canvas.drawText(font, 
             "Floor " + String(this.stageIndex), canvas.width/2, 8, 
             0, 0, TextAlign.Center);
 
-        canvas.drawText(
-            canvas.getBitmap("font"), 
+        canvas.drawText(font, 
             "Password: 123456", canvas.width/2, canvas.height-12, 
             0, 0, TextAlign.Center);
 
         this.stage.drawHUD(canvas);
+
+        canvas.setColor(0.34, 0.34, 0.34);
+        for (let y = COG_HEIGHT-1; y >= 0; -- y) {
+
+            if (y == 0) {
+
+                canvas.setColor(0.67, 0.67, 0.67);
+            }
+
+            // Bottom left
+            canvas.transform.push()
+                .translate(0, canvas.height + y)
+                .rotate(this.stage.getSpecialMoveTimer() * Math.PI/2.0)
+                .use();
+            canvas.drawBitmapRegion(cogs, 0, 0, 80, 80, -40, -40);
+            canvas.transform.pop();
+
+            // Bottom right
+            canvas.transform.push()
+                .translate(canvas.width, canvas.height + y)
+                .rotate(-this.stage.getSpecialMoveTimer() * Math.PI/2.0)
+                .use();
+            canvas.drawBitmapRegion(cogs, 80, 0, 80, 80, -40, -40);
+            canvas.transform.pop();
+
+            // Top right
+            canvas.transform.push()
+                .translate(canvas.width, y)
+                .rotate(this.stage.getSpecialMoveTimer() * Math.PI/2.0)
+                .use();
+            canvas.drawBitmapRegion(cogs, 0, 0, 80, 80, -40, -40);
+            canvas.transform.pop();
+
+            // Top left
+            canvas.transform.push()
+                .translate(0, y)
+                .rotate(-this.stage.getSpecialMoveTimer() * Math.PI/2.0)
+                .use();
+            canvas.drawBitmapRegion(cogs, 80, 0, 80, 80, -40, -40);
+            canvas.transform.pop();
+
+        }
+
+        canvas.transform.use();
+        canvas.setColor();
     }
 
 
@@ -195,7 +245,9 @@ export class Game implements Scene {
 
     public init(param: SceneParam, event: CoreEvent): void {
         
-        this.stage = new Stage(event);
+        this.stageIndex = 1;
+
+        this.stage = new Stage(this.stageIndex, event);
         this.createPauseMenu();
     }
 
@@ -247,7 +299,7 @@ export class Game implements Scene {
 
         const PAUSE_DARKEN_ALPHA = 0.33;
 
-        canvas.clear(0.0, 0.33, 0.67);
+        canvas.clear(0.0, 0.34, 0.67);
         canvas.transform
             .setView(canvas.width, canvas.height)
             .loadIdentity()

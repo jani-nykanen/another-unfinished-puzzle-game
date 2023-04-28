@@ -1,6 +1,5 @@
 import { CoreEvent } from "../core/event.js";
 import { Canvas } from "../renderer/canvas.js";
-import { Vector2 } from "../vector/vector.js";
 import { Direction, inverseDirection } from "./direction.js";
 import { GameObject } from "./gameobject.js";
 import { ObjectType } from "./objecttype.js";
@@ -64,7 +63,7 @@ export class Crate extends GameObject {
     }
 
 
-    public draw(canvas : Canvas, stage : Stage) : void {
+    public draw(canvas : Canvas, stage : Stage, shiftx = 0, shifty = 0) : void {
         
         if (!this.exist)
             return;
@@ -74,7 +73,7 @@ export class Crate extends GameObject {
             return;
 
         canvas.drawBitmapRegion(bmp, 16, 0, 16, 16,
-            Math.round(this.renderPos.x * stage.tileWidth) | 0,
-            Math.round(this.renderPos.y * stage.tileHeight) | 0);
+            Math.round((this.renderPos.x + shiftx) * stage.tileWidth) | 0,
+            Math.round((this.renderPos.y + shifty) * stage.tileHeight) | 0);
     }
 }

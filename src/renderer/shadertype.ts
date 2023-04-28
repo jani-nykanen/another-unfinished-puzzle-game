@@ -1,3 +1,3 @@
 
 
-export type ShaderType = "textured" | "notexture" | "fixedcolor";
+export type ShaderType = "textured" | "notexture" | "fixedcolor" | "rgb222";
