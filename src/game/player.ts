@@ -100,6 +100,15 @@ export class Player extends GameObject {
     }
 
 
+    protected resetEvent() : void {
+
+        for (let d of this.dust) {
+
+            d.kill();
+        }
+    }
+
+
     protected checkMovement(stage : Stage, event : CoreEvent) : boolean {
 
         const EPS = 0.25;

@@ -690,6 +690,19 @@ export class Stage {
 
     public reset() : void {
 
+        let anyMoving = false;
+        do {
+
+            anyMoving = false;
+            for (let o of this.objectPool) {
+
+                if (o.forceFinishMove(this)) {
+
+                    anyMoving = true;
+                }
+            }
+        } while(anyMoving);
+
         this.copyStateToBuffer();
 
         let i : number;
@@ -708,9 +721,13 @@ export class Stage {
                     this.activeObjectLayer[i].setPosition(x, y);
                 }
             }
+        }   
+
+        for (let e of this.effects) {
+
+            e.kill();
         }
-        
-    }
+    }   
 
 
     public getWidth = () : number => this.width;

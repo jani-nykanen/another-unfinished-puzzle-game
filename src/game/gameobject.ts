@@ -68,6 +68,7 @@ export abstract class GameObject extends ExistingObject {
     protected abstract checkMovement(stage : Stage, event : CoreEvent) : boolean
     protected updateAnimation(event : CoreEvent) : void {};
     protected tileEffectEvent(stage : Stage, eff : TileEffect) : boolean { return false; }
+    protected resetEvent() : void {}
 
 
     protected handleTileEffect(stage : Stage, eff : TileEffect) : boolean {
@@ -158,6 +159,27 @@ export abstract class GameObject extends ExistingObject {
         return false;
     }
 
+
+    public forceFinishMove(stage : Stage) : boolean {
+        
+        if (!this.moving)
+            return false;
+
+        this.target.x = negMod(this.target.x, stage.getWidth());
+        this.target.y = negMod(this.target.y, stage.getHeight());
+
+        stage.updateObjectLayerTile(this.target.x, this.target.y, this);
+
+        this.pos = this.target.clone();
+        this.renderPos = this.pos.clone();
+
+        this.moving = false;
+        this.moveTimer = 0.0;   
+
+        let eff = stage.checkUnderlyingTile(this.pos.x, this.pos.y);
+        return this.handleTileEffect(stage, eff);
+    }
+
     
     public checkConflicts(stage : Stage) : void {
 
@@ -189,6 +211,8 @@ export abstract class GameObject extends ExistingObject {
         this.moveTimer = 0;
 
         this.exist = true;
+
+        this.resetEvent();
     }
 
 
