@@ -1,6 +1,5 @@
 import { CoreEvent } from "../core/event.js";
 import { Canvas } from "../renderer/canvas.js";
-import { Tilemap } from "../core/tilemap.js";
 import { Bitmap } from "../renderer/bitmap.js";
 import { WallMap } from "./wallmap.js";
 import { GameObject } from "./gameobject.js";
@@ -328,6 +327,8 @@ export class Stage {
         for (let i = 0; i < this.initialStaticLayer.length; ++ i) {
 
             tileID = this.initialStaticLayer[i];
+            if (this.activeObjectLayer[i] != undefined)
+                continue;
 
             if (tileID == 6) {
 
