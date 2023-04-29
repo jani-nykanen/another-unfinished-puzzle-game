@@ -14,6 +14,7 @@ import { negMod } from "../math/utility.js";
 import { Vector2 } from "../vector/vector.js";
 import { AnimationSpecialEffect } from "./animationeffect.js";
 import { nextObject } from "./existingobject.js";
+import { LevelPack } from "../core/levelpack.js";
 
 
 const NON_ANIMATED_TILES = [
@@ -58,7 +59,7 @@ const UNDO_BUFFER_SIZE = 64;
 export class Stage {
 
 
-    private baseMap : Tilemap;
+    private levels : LevelPack;
 
     private objectPool : Array<GameObject>;
 
@@ -94,15 +95,15 @@ export class Stage {
     public readonly tileHeight : number;
 
 
-    constructor(initialStage : number, event : CoreEvent) {
+    constructor(initialStage : number, levelpack : LevelPack) {
 
-        let baseMap = event.assets.getTilemap(String(initialStage));
+        let baseMap = levelpack.getTilemap(String(initialStage));
         if (baseMap == undefined) {
 
             throw "Missing tilemap!";
         }
+        this.levels = levelpack;
 
-        this.baseMap = baseMap;
         this.width = baseMap.width;
         this.height = baseMap.height;
 
@@ -779,15 +780,14 @@ export class Stage {
     }
 
 
-    public nextStage(index : number, event : CoreEvent) : void {
+    public nextStage(index : number) : void {
 
-        let baseMap = event.assets.getTilemap(String(index));
+        let baseMap = this.levels.getTilemap(String(index));
         if (baseMap == undefined) {
 
             throw "Missing tilemap!";
         }
 
-        this.baseMap = baseMap;
         this.width = baseMap.width;
         this.height = baseMap.height;
 

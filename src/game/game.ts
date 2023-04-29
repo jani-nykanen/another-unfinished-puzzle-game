@@ -193,7 +193,7 @@ export class Game implements Scene {
                 (event : CoreEvent) => {
 
                     ++ this.stageIndex;
-                    this.stage.nextStage(this.stageIndex, event);
+                    this.stage.nextStage(this.stageIndex);
                 }); 
         }
     }
@@ -245,9 +245,15 @@ export class Game implements Scene {
 
     public init(param: SceneParam, event: CoreEvent): void {
         
+        let levels = event.assets.getLevelPack("pack1");
+        if (levels == undefined) {
+
+            throw "Missing level pack!";
+        }
+
         this.stageIndex = 1;
 
-        this.stage = new Stage(this.stageIndex, event);
+        this.stage = new Stage(this.stageIndex, levels);
         this.createPauseMenu();
     }
 

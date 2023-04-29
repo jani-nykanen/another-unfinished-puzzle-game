@@ -3,74 +3,32 @@
 export class Tilemap {
 
 
-    private tileLayers : Map<string | null, number[]>;
-    private properties : Map<string | null, string | null>;
+    private tileLayers : Map<string, number[]>;
+    private properties : Map<string, string>;
 
     public readonly width : number;
     public readonly height : number;
 
 
-    constructor(xmlString : string) {
+    constructor(width : number, height : number) {
 
-        let doc = (new DOMParser()).parseFromString(xmlString, "text/xml");
-        let root = doc.getElementsByTagName("map")[0];
+        this.width = width;
+        this.height = height;
 
-        this.width = Number(root.getAttribute("width"));
-        this.height = Number(root.getAttribute("height"));
-
-        this.parseLayerData(root);
-        this.parseProperties(root);
+        this.tileLayers = new Map<string, number[]> ();
+        this.properties = new Map<string, string> ();
     }
 
 
-    private parseLayerData(root : HTMLMapElement) : void {
+    public addLayer(name : string, tileData : number[]) : void {
 
-        this.tileLayers = new Map<string | null, number[]> ();
-
-        let data = root.getElementsByTagName("layer");
-        if (data == null) {
-
-            return;
-        }
-
-        let content : Array<string> | undefined;
-        for (let i = 0; i < data.length; ++ i) {
-
-            content = data[i].getElementsByTagName("data")[0]?.
-                childNodes[0]?.
-                nodeValue?.
-                replace(/(\r\n|\n|\r)/gm, "")?.
-                split(",");
-            if (content == undefined)
-                continue;
-
-            this.tileLayers.set(
-                data[i].getAttribute("name"), 
-                content.map((v : string) => Number(v)));
-        }
-    }   
+        this.tileLayers.set(name, Array.from(tileData));
+    }
 
 
-    private parseProperties(root : HTMLMapElement) : void {
+    public addProperty(name : string, property : string) : void {
 
-        this.properties = new Map<string | null, string | null> ();
-
-        let prop = root.getElementsByTagName("properties")[0];
-        let elements : HTMLCollectionOf<Element>;;
-        let p : Element;
-
-        if (prop != undefined) {
-
-            elements = prop.getElementsByTagName("property");
-            for (let i = 0; i < elements.length; ++ i) {
-
-                p = elements[i];
-                if (p.getAttribute("name") != undefined) {
-
-                    this.properties.set(p.getAttribute("name"), p.getAttribute("value"));
-                }
-            }
-        } 
+        this.properties.set(name, property);
     }
 
 

@@ -4,6 +4,8 @@ import { Tilemap } from "./tilemap.js";
 import { AudioSystem } from "../audio/audiosystem.js";
 import { RenderContext } from "../renderer/rendercontext.js";
 import { Mesh } from "../renderer/mesh.js";
+import { parseTilemap } from "./tilemapparser.js";
+import { LevelPack } from "./levelpack.js";
 
 
 export class Assets {
@@ -12,6 +14,7 @@ export class Assets {
     private bitmaps : Map<string, Bitmap>;
     private samples : Map<string, AudioSample>;
     private tilemaps : Map<string, Tilemap>;
+    private levelPacks : Map<string, LevelPack>;
     private meshes : Map<string, Mesh>;
 
     private loaded : number = 0;
@@ -26,6 +29,7 @@ export class Assets {
         this.bitmaps = new Map<string, Bitmap> ();
         this.samples = new Map<string, AudioSample> ();
         this.tilemaps = new Map<string, Tilemap> ();
+        this.levelPacks = new Map<string, LevelPack> ();
         this.meshes = new Map<string, Mesh> ();
 
         this.audio = audio;
@@ -97,7 +101,7 @@ export class Assets {
         
         this.loadTextFile(path, "xml", (str : string) => {
 
-            this.tilemaps.set(name, new Tilemap(str));
+            this.tilemaps.set(name, parseTilemap(str));
             ++ this.loaded;
         });
     }
@@ -125,6 +129,18 @@ export class Assets {
     }
 
 
+    public loadLevelPack(name : string, path : string) : void {
+
+        ++ this.totalAssets;
+        
+        this.loadTextFile(path, "json", (str : string) => {
+
+            this.levelPacks.set(name, new LevelPack(str));
+            ++ this.loaded;
+        });
+    }
+
+
     public addMesh(name : string, mesh : Mesh) : void {
 
         this.meshes.set(name, mesh);
@@ -148,6 +164,10 @@ export class Assets {
             this.loadItems(data, (name : string, path : string) => {
                 this.loadSample(name, path);
             }, "samplePath", "samples");
+
+            this.loadItems(data, (name : string, path : string) => {
+                this.loadLevelPack(name, path);
+            }, "levelPackPath", "levelPacks");
         });
     }
 
@@ -170,6 +190,12 @@ export class Assets {
     public getTilemap(name : string) : Tilemap | undefined {
 
         return this.tilemaps.get(name);
+    }
+
+
+    public getLevelPack(name : string) : LevelPack | undefined {
+
+        return this.levelPacks.get(name);
     }
 
 
