@@ -45,9 +45,7 @@ outputFile = sys.argv[2]
 
 files = sorted(glob.glob(inputFolder + "/*.tmx"))
 
-print(files)
 levels = []
-
 outputData = {
     "levels": []
 }
