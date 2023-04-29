@@ -300,7 +300,6 @@ export class Game implements Scene {
     }
 
 
-
     public redraw(canvas: Canvas, interpolationStep : number): void {
 
         const PAUSE_DARKEN_ALPHA = 0.33;

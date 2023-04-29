@@ -17,7 +17,7 @@ import { LevelPack } from "../core/levelpack.js";
 
 
 const NON_ANIMATED_TILES = [
-    4, 6, 7, 8, 9, 10, 12
+    4, 6, 7, 8, 9, 10, 12, 14, 15
 ];
 const ANIMATED_TILES = [
     11, 13, 17, 18, 19, 20
@@ -26,14 +26,14 @@ const SOURCE_X = [
     0, 0, 0, 0, 
     0, 2, 3, 0, 
     2, 3, 0, 1, 
-    2, 0, 0, 0,
+    2, 0, 1, 0,
     0, 0, 2, 2
 ];
 const SOURCE_Y = [
     0, 0, 0, 2, 
     0, 0, 0, 1, 
     1, 1, 3, 2, 
-    2, 0, 0, 0,
+    2, 6, 6, 0,
     4, 5, 5, 4
 ];
 const FRAME_COUNT = [
@@ -500,7 +500,7 @@ export class Stage {
 
     public canMoveTo(x : number, y : number, type : ObjectType) : boolean {
 
-        const SOLID_TILES = [1, 2, 6, 9, 12];
+        const SOLID_TILES = [1, 2, 6, 9, 12, 14, 15];
         const ITEMS = [10, 13];
         // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
 
@@ -626,6 +626,14 @@ export class Stage {
             return true;
         }
 
+        // Bolt
+        if (tileID == 14) {
+
+            this.swapArrows();
+            this.updateStaticLayerTile(x, y, 15);
+            return true;
+        }
+
         return false;
     }
 
@@ -685,6 +693,27 @@ export class Stage {
             .use();
 
         canvas.setViewport(dx, dy, this.width * this.tileWidth, this.height * this.tileHeight);
+    }
+
+
+    public swapArrows() : void {
+
+        const SWAP_ARROW = [19, 20, 17, 18];
+
+        let tileId : number;
+
+        for (let i = 0; i < this.width*this.height; ++ i) {
+
+            tileId = this.activeStaticLayer[i];
+            if (tileId >= 17 && tileId <= 20) {
+
+                this.activeStaticLayer[i] = SWAP_ARROW[tileId-17];
+            }
+            else if (tileId == 15) {
+
+                this.activeStaticLayer[i] = 14;
+            }
+        }
     }
 
 
