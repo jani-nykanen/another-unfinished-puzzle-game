@@ -368,7 +368,7 @@ export class Stage {
     public update(event : CoreEvent) : void {
 
         const ANIMATION_SPEED = 1.0/30.0;
-        const TURN_TIMER = 1.0/15.0;
+        const MOVE_SPEED = 1.0/12.0;
 
         this.tileAnimationTimer = (this.tileAnimationTimer + ANIMATION_SPEED*event.step) % 1.0;
 
@@ -396,7 +396,7 @@ export class Stage {
 
         if (anythingActive) {
 
-            this.specialMoveTimer = (this.specialMoveTimer + TURN_TIMER * event.step) % 1.0;
+            this.specialMoveTimer = (this.specialMoveTimer + MOVE_SPEED * event.step) % 1.0;
         }
         else {
 
@@ -416,7 +416,7 @@ export class Stage {
             somethingMoved = false;
             for (let o of this.objectPool) {
 
-                if (o.update(TURN_TIMER, this, event, !anythingActive)) {
+                if (o.update(MOVE_SPEED, this, event, !anythingActive)) {
 
                     somethingMoved = true;
                 }

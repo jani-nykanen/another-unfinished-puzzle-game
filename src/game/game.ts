@@ -302,7 +302,7 @@ export class Game implements Scene {
 
     public redraw(canvas: Canvas, interpolationStep : number): void {
 
-        const PAUSE_DARKEN_ALPHA = 0.33;
+        const PAUSE_DARKEN_ALPHA = 0.34;
 
         canvas.clear(0.0, 0.34, 0.67);
         canvas.transform
