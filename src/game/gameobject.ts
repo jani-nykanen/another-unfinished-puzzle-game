@@ -82,6 +82,12 @@ export abstract class GameObject extends ExistingObject {
             }
             return false;
         }
+        else if (eff == TileEffect.CrossBlock) {
+
+            stage.updateStaticLayerTile(this.pos.x, this.pos.y, 22);
+            return false;
+        }
+
         return this.tileEffectEvent(stage, eff);
     }
 

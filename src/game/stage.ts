@@ -17,24 +17,29 @@ import { LevelPack } from "../core/levelpack.js";
 
 
 const NON_ANIMATED_TILES = [
-    4, 6, 7, 8, 9, 10, 12, 14, 15
+    4, 6, 7, 8, 
+    9, 10, 12, 14, 
+    15, 21, 22, 23
 ];
 const ANIMATED_TILES = [
-    11, 13, 17, 18, 19, 20
+    11, 13, 17, 18, 
+    19, 20
 ];
 const SOURCE_X = [
     0, 0, 0, 0, 
     0, 2, 3, 0, 
     2, 3, 0, 1, 
     2, 0, 1, 0,
-    0, 0, 2, 2
+    0, 0, 2, 2,
+    0, 1, 2,
 ];
 const SOURCE_Y = [
     0, 0, 0, 2, 
     0, 0, 0, 1, 
     1, 1, 3, 2, 
     2, 6, 6, 0,
-    4, 5, 5, 4
+    4, 5, 5, 4,
+    7, 7, 7,
 ];
 const FRAME_COUNT = [
     0, 0, 0, 0, 
@@ -343,7 +348,7 @@ export class Stage {
     }
 
 
-    private checkWallButtons(force = false) : void {
+    private checkChangingTiles(force = false) : void {
 
         let freeButton = false;
 
@@ -353,7 +358,11 @@ export class Stage {
                 this.activeObjectLayer[i] == undefined) {
  
                 freeButton = true;
-                break;
+            }
+            else if (this.activeStaticLayer[i] == 22 &&
+                this.activeObjectLayer[i] == undefined) {
+
+                this.activeStaticLayer[i] = 23;
             }
         }
 
@@ -405,7 +414,7 @@ export class Stage {
 
         if (this.wasMoving && !anythingActive) {
 
-            this.checkWallButtons();
+            this.checkChangingTiles();
 
             this.copyStateToBuffer();
             this.wasMoving = false;
@@ -500,7 +509,7 @@ export class Stage {
 
     public canMoveTo(x : number, y : number, type : ObjectType) : boolean {
 
-        const SOLID_TILES = [1, 2, 6, 9, 12, 14, 15];
+        const SOLID_TILES = [1, 2, 6, 9, 12, 14, 15, 23];
         const ITEMS = [10, 13];
         // const ARROW_FORBIDDEN_DIR = [Direction.Left, Direction.Down, Direction.Right, Direction.Up];
 
@@ -589,6 +598,12 @@ export class Stage {
         if (tileID == 4) {
 
             return TileEffect.Stairway;
+        }
+
+        // Cross block
+        if (tileID == 21) {
+
+            return TileEffect.CrossBlock;
         }
 
         return TileEffect.None;
@@ -741,7 +756,7 @@ export class Stage {
                 }
             }
         }
-        this.checkWallButtons(true);
+        this.checkChangingTiles(true);
 
         -- this.undoCount;
 
